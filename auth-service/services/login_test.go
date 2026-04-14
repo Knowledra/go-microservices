@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/sushantpardhi/shared/db"
+	"github.com/sushantpardhi/shared/logger"
 	"github.com/sushantpardhi/shared/models"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/sqlite"
@@ -12,6 +13,8 @@ import (
 )
 
 func setupLoginTestDB(t *testing.T) {
+	logger.Init("test")
+
 	database, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	assert.NoError(t, err)
 
