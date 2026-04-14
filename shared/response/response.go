@@ -24,14 +24,18 @@ type ErrorResponse struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
 	Code    int    `json:"code,omitempty"`
-	Error   error  `json:"error"`
+	Error   string `json:"error,omitempty"`
 }
 
 func Error(c *gin.Context, code int, msg string, err error) {
+	errMsg := ""
+	if err != nil {
+		errMsg = err.Error()
+	}
 	c.JSON(code, ErrorResponse{
 		Success: false,
 		Code:    code,
 		Message: msg,
-		Error:   err,
+		Error:   errMsg,
 	})
 }
