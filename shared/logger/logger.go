@@ -24,7 +24,7 @@ func Init(filename string) {
 	// ✅ Common log file (info + warn + error)
 	allWriter := zapcore.AddSync(&lumberjack.Logger{
 		Filename:   `../logs/` + filename + `.log`,
-		MaxSize:    50,
+		MaxSize:    1,
 		MaxBackups: 7,
 		MaxAge:     7,
 		Compress:   true,
@@ -37,7 +37,7 @@ func Init(filename string) {
 	}
 	errorWriter := zapcore.AddSync(&lumberjack.Logger{
 		Filename:   `../logs/` + errorFilename + `.log`,
-		MaxSize:    50,
+		MaxSize:    1,
 		MaxBackups: 7,
 		MaxAge:     7,
 		Compress:   true,
