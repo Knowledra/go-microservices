@@ -10,6 +10,7 @@ import (
 	"github.com/sushantpardhi/shared/db"
 	"github.com/sushantpardhi/shared/env"
 	"github.com/sushantpardhi/shared/logger"
+	"github.com/sushantpardhi/shared/middleware"
 	"github.com/sushantpardhi/shared/server"
 	"go.uber.org/zap"
 )
@@ -44,6 +45,7 @@ func main() {
 	}
 
 	app := gin.Default()
+	app.Use(middleware.RequestID())
 
 	db.ConnectDB()
 

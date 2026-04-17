@@ -11,6 +11,6 @@ import (
 func Logout(c *gin.Context) {
 	// Delete cookie
 	c.SetCookie("access_token", "", -1, "/", "", true, true)
-	logger.Info("Logout Successful")
+	logger.Ctx(c).Info("Logout Successful")
 	response.Success(c, http.StatusOK, "Logout successful", nil)
 }

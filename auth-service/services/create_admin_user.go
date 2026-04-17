@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"os"
@@ -17,46 +18,46 @@ import (
 	"gorm.io/gorm"
 )
 
-func CreateAdminUser(input models.RegisterAdmin) (models.User, json.RawMessage, error) {
+func CreateAdminUser(ctx context.Context, input models.RegisterAdmin) (models.User, json.RawMessage, error) {
 	// Password check
 	adminSecret := os.Getenv("ADMIN_PASS")
 
-	logger.Info("Validating admin credentials for CreateAdmin")
+	logger.Ctx(ctx).Info("Validating admin credentials for CreateAdmin")
 	if input.AdminPassword == "" || input.AdminPassword != adminSecret {
-		logger.Error("Invalid admin credentials")
+		logger.Ctx(ctx).Error("Invalid admin credentials")
 		return models.User{}, nil, errors.New("invalid admin credentials")
 	}
-	logger.Info("Admin credentials validated successfully")
+	logger.Ctx(ctx).Info("Admin credentials validated successfully")
 
 	// Check if user already exists
-	logger.Info("Checking if user already exists with email", zap.String("email", input.Email))
+	logger.Ctx(ctx).Info("Checking if user already exists with email", zap.String("email", input.Email))
 	var existingUser models.User
 	err := db.DB.Where("email = ?", input.Email).First(&existingUser).Error
 
 	if err == nil {
 		// user found → already exists
-		logger.Error("User already exists with email", zap.String("email", input.Email))
+		logger.Ctx(ctx).Error("User already exists with email", zap.String("email", input.Email))
 		return models.User{}, nil, errors.New("user already exists")
 	}
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		// real DB error
-		logger.Error("Database error while checking existing user", zap.Error(err))
+		logger.Ctx(ctx).Error("Database error while checking existing user", zap.Error(err))
 		return models.User{}, nil, errors.New("database error")
 	}
-	logger.Info("No existing user found with email, proceeding to hash admin password", zap.String("email", input.Email))
+	logger.Ctx(ctx).Info("No existing user found with email, proceeding to hash admin password", zap.String("email", input.Email))
 
 	// Hash password
-	logger.Info("Hashing password for new admin user")
+	logger.Ctx(ctx).Info("Hashing password for new admin user")
 	hashedPassword, hashErr := bcrypt.GenerateFromPassword([]byte(input.Password), 10)
 
 	if hashErr != nil {
-		logger.Error("Password hashing failed", zap.Error(hashErr))
+		logger.Ctx(ctx).Error("Password hashing failed", zap.Error(hashErr))
 		return models.User{}, nil, errors.New("password hashing failed")
 	}
-	logger.Info("Password hashed successfully for new admin user")
+	logger.Ctx(ctx).Info("Password hashed successfully for new admin user")
 
 	// Create user
-	logger.Info("Creating new admin user in database", zap.String("email", input.Email))
+	logger.Ctx(ctx).Info("Creating new admin user in database", zap.String("email", input.Email))
 	newUser := models.User{
 		Email:    input.Email,
 		Password: string(hashedPassword),
@@ -64,25 +65,25 @@ func CreateAdminUser(input models.RegisterAdmin) (models.User, json.RawMessage, 
 	}
 
 	// Save user in User table
-	logger.Info("Saving admin in User table", zap.String("email", newUser.Email))
+	logger.Ctx(ctx).Info("Saving admin in User table", zap.String("email", newUser.Email))
 	if err := db.DB.Create(&newUser).Error; err != nil {
-		logger.Error("Failed to create admin in User table", zap.Error(err))
+		logger.Ctx(ctx).Error("Failed to create admin in User table", zap.Error(err))
 		return models.User{}, nil, errors.New("failed to create admin in User table")
 	}
-	logger.Info("Admin created successfully in User table", zap.String("user_id", newUser.ID.String()))
+	logger.Ctx(ctx).Info("Admin created successfully in User table", zap.String("user_id", newUser.ID.String()))
 
-	logger.Info("Calling User-Service API to create admin in Admin table", zap.String("user_id", newUser.ID.String()))
-	adminBytes, err := callAPI.CallAPI("POST", "http://user-service:8002/api/v1/profile/create/admin", gin.H{
+	logger.Ctx(ctx).Info("Calling User-Service API to create admin in Admin table", zap.String("user_id", newUser.ID.String()))
+	adminBytes, err := callAPI.CallAPI(ctx, "POST", "http://user-service:8002/api/v1/profile/create/admin", gin.H{
 		"user_id":   newUser.ID,
 		"name":      input.Name,
 		"last_name": input.LastName,
 	})
 
 	if err != nil {
-		logger.Error("Failed to create admin in Admin table", zap.Error(err))
+		logger.Ctx(ctx).Error("Failed to create admin in Admin table", zap.Error(err))
 		return models.User{}, nil, errors.New("failed to create admin in Admin table")
 	}
-	logger.Info("Admin created successfully in Admin table", zap.String("user_id", newUser.ID.String()))
+	logger.Ctx(ctx).Info("Admin created successfully in Admin table", zap.String("user_id", newUser.ID.String()))
 
 	var apiResponse struct {
 		Data struct {
