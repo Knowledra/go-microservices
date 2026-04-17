@@ -1,8 +1,10 @@
 package logger
 
 import (
+	"context"
 	"os"
 
+	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -79,4 +81,24 @@ func Debug(msg string, fields ...zap.Field) {
 
 func Fatal(msg string, fields ...zap.Field) {
 	log.Fatal(msg, fields...)
+}
+
+func Ctx(ctx context.Context) *zap.Logger {
+	if ctx == nil {
+		return log
+	}
+
+	var reqID string
+
+	// Check if it's a gin Context
+	if c, ok := ctx.(*gin.Context); ok {
+		reqID = c.GetString("X-Request-Id")
+	} else if val, ok := ctx.Value("X-Request-Id").(string); ok {
+		reqID = val
+	}
+
+	if reqID != "" {
+		return log.With(zap.String("request_id", reqID))
+	}
+	return log
 }

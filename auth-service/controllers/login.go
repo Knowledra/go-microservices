@@ -12,27 +12,27 @@ import (
 )
 
 func Login(c *gin.Context) {
-	logger.Info("Login endpoint hit")
+	logger.Ctx(c).Info("Login endpoint hit")
 	var input models.Login
 
-	logger.Info("Binding JSON input for Login")
+	logger.Ctx(c).Info("Binding JSON input for Login")
 	if err := c.ShouldBindJSON(&input); err != nil {
-		logger.Error("Invalid input", zap.Error(err))
+		logger.Ctx(c).Error("Invalid input", zap.Error(err))
 		response.Error(c, http.StatusBadRequest, "Invalid input", err)
 		return
 	}
-	logger.Info("JSON input bound successfully")
+	logger.Ctx(c).Info("JSON input bound successfully")
 
-	token, user, err := services.Login(input.Email, input.Password)
+	token, user, err := services.Login(c, input.Email, input.Password)
 	if err != nil {
 		response.Error(c, http.StatusUnauthorized, "Invalid credentials", err)
 		return
 	}
 
-	logger.Info("Setting cookie for user", zap.String("user_id", user.ID.String()))
+	logger.Ctx(c).Info("Setting cookie for user", zap.String("user_id", user.ID.String()))
 	c.SetCookie("access_token", token, 3600*24, "/", "", true, true)
-	logger.Info("Cookie set successfully")
+	logger.Ctx(c).Info("Cookie set successfully")
 
-	logger.Info("Login successful", zap.String("user_id", user.ID.String()))
-	response.Success(c, http.StatusOK, "Login successful", gin.H{"user": user})
+	logger.Ctx(c).Info("Login successful", zap.String("user_id", user.ID.String()))
+	response.Success(c, http.StatusOK, "Login successful", gin.H{"user": user.ID.String()})
 }

@@ -3,9 +3,8 @@ package routes
 import (
 	"auth/controllers"
 
-	middleware "github.com/sushantpardhi/shared/middlewares"
-
 	"github.com/gin-gonic/gin"
+	"github.com/sushantpardhi/shared/middleware"
 )
 
 func authRoutes(app *gin.RouterGroup) {
