@@ -14,7 +14,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func CreateAdmin(input models.RegisterAdmin) (models.User, error) {
+func CreateAdminUser(input models.RegisterAdmin) (models.User, error) {
 	// Password check
 	adminSecret := os.Getenv("ADMIN_PASS")
 
@@ -55,8 +55,6 @@ func CreateAdmin(input models.RegisterAdmin) (models.User, error) {
 	// Create user
 	logger.Info("Creating new admin user in database", zap.String("email", input.Email))
 	newUser := models.User{
-		Name:     input.Name,
-		LastName: input.LastName,
 		Email:    input.Email,
 		Password: string(hashedPassword),
 		Role:     "admin",
@@ -73,4 +71,8 @@ func CreateAdmin(input models.RegisterAdmin) (models.User, error) {
 	// TODO: Call the User-Service API and add Admin data to Admin table in users db
 
 	return newUser, nil
+}
+
+func CreateAdminProfile(input models.RegisterAdmin) (models.User, error) {
+	return models.User{}, nil
 }

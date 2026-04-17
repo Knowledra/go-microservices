@@ -40,7 +40,7 @@ func TestCreateAdmin_Success(t *testing.T) {
 		AdminPassword: "secret",
 	}
 
-	user, err := CreateAdmin(input)
+	user, err := CreateAdminUser(input)
 
 	assert.NoError(t, err)
 	assert.Equal(t, "admin", user.Role)
@@ -58,7 +58,7 @@ func TestCreateAdmin_InvalidAdminPassword(t *testing.T) {
 		AdminPassword: "wrong",
 	}
 
-	_, err := CreateAdmin(input)
+	_, err := CreateAdminUser(input)
 
 	assert.Error(t, err)
 	assert.Equal(t, "invalid admin credentials", err.Error())
@@ -80,7 +80,7 @@ func TestCreateAdmin_UserAlreadyExists(t *testing.T) {
 		AdminPassword: "secret",
 	}
 
-	_, err := CreateAdmin(input)
+	_, err := CreateAdminUser(input)
 
 	assert.Error(t, err)
 	assert.Equal(t, "user already exists", err.Error())
@@ -101,7 +101,7 @@ func TestCreateAdmin_DBFailure(t *testing.T) {
 		AdminPassword: "secret",
 	}
 
-	_, err := CreateAdmin(input)
+	_, err := CreateAdminUser(input)
 
 	assert.Error(t, err)
 }

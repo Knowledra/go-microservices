@@ -25,12 +25,13 @@ func CreateAdmin(c *gin.Context) {
 	}
 	logger.Info("JSON input bound successfully")
 
-	user, err := services.CreateAdmin(input)
+	user, err := services.CreateAdminUser(input)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Failed to create admin", err)
 		return
 	}
+	// Create Admin Profile
 
 	logger.Info("Admin created successfully", zap.String("user_id", user.ID.String()))
-	response.Success(c, http.StatusCreated, "Admin created", gin.H{"admin": user})
+	response.Success(c, http.StatusCreated, "Admin created", gin.H{"user": user})
 }
