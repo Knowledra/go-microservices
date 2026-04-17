@@ -1,7 +1,9 @@
 package main
 
 import (
+	"auth/models"
 	"auth/routes"
+	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -39,6 +41,10 @@ func main() {
 	app := gin.Default()
 
 	db.ConnectDB()
+
+	if err := models.Migrate(db.DB); err != nil {
+		log.Fatal("Migration failed:", err)
+	}
 
 	routes.Init(app)
 

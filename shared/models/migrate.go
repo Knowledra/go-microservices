@@ -6,7 +6,7 @@ func Migrate(db *gorm.DB) error {
 	return db.AutoMigrate(
 		// &Institute{},
 
-		&User{}, &Admin{}, &Teacher{}, &Student{}, &Parent{},
+		&Admin{}, &Teacher{}, &Student{}, &Parent{},
 
 		&StudentParent{},
 

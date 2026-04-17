@@ -18,8 +18,6 @@ RUN CGO_ENABLED=0 go build -o user-service
 FROM alpine:latest
 WORKDIR /app
 COPY --from=builder /app/user-service .
-# Copy the service .env file for godotenv
-COPY user-service/.env .env
 
 EXPOSE 8002
 CMD ["./user-service"]

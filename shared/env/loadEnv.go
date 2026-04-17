@@ -15,10 +15,10 @@ func LoadEnv(env string) error {
 		err := godotenv.Load(".env.local")
 		Environment = "local"
 		if err != nil {
-			logger.Error("Failed to load local environment file", zap.Error(err))
-			return err
+			logger.Warn("Failed to load local environment file. Relying on system environment variables.", zap.Error(err))
+		} else {
+			logger.Info("Local environment loaded successfully")
 		}
-		logger.Info("Local environment loaded successfully")
 	}
 
 	// Load Development env
@@ -27,10 +27,10 @@ func LoadEnv(env string) error {
 		err := godotenv.Load(".env.development")
 		Environment = "development"
 		if err != nil {
-			logger.Error("Failed to load development environment file", zap.Error(err))
-			return err
+			logger.Warn("Failed to load development environment file. Relying on system environment variables.", zap.Error(err))
+		} else {
+			logger.Info("Development environment loaded successfully")
 		}
-		logger.Info("Development environment loaded successfully")
 	}
 
 	// Load Production env
@@ -39,10 +39,10 @@ func LoadEnv(env string) error {
 		err := godotenv.Load(".env")
 		Environment = "production"
 		if err != nil {
-			logger.Error("Failed to load production environment file", zap.Error(err))
-			return err
+			logger.Warn("Failed to load production environment file. Relying on system environment variables.", zap.Error(err))
+		} else {
+			logger.Info("Production environment loaded successfully")
 		}
-		logger.Info("Production environment loaded successfully")
 	}
 
 	return nil

@@ -4,9 +4,10 @@ import (
 	"errors"
 	"os"
 
+	"auth/models"
+
 	"github.com/sushantpardhi/shared/db"
 	"github.com/sushantpardhi/shared/logger"
-	"github.com/sushantpardhi/shared/models"
 
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
@@ -61,34 +62,14 @@ func CreateAdmin(input models.RegisterAdmin) (models.User, error) {
 		Role:     "admin",
 	}
 
-	logger.Info("Beginning database transaction to create admin user and admin record")
-	err = db.DB.Transaction(func(tx *gorm.DB) error {
-		logger.Info("Creating user record for admin", zap.String("email", newUser.Email))
-		if err := tx.Create(&newUser).Error; err != nil {
-			logger.Error("Failed to create user record for admin", zap.Error(err))
-			return err
-		}
-
-		logger.Info("Creating admin record linked to user", zap.String("user_id", newUser.ID.String()))
-		admin := models.Admin{
-			UserID: newUser.ID,
-			// User:   newUser,
-		}
-
-		logger.Info("Saving admin record to database", zap.String("user_id", newUser.ID.String()))
-		if err := tx.Create(&admin).Error; err != nil {
-			logger.Error("Failed to create admin record", zap.Error(err))
-			return err
-		}
-
-		return nil
-	})
-	logger.Info("Database transaction completed for creating admin user and admin record")
-
-	if err != nil {
-		logger.Error("Failed to create admin", zap.Error(err))
-		return models.User{}, errors.New("failed to create admin")
+	// Save user in User table
+	logger.Info("Saving admin in User table", zap.String("email", newUser.Email))
+	if err := db.DB.Create(&newUser).Error; err != nil {
+		logger.Error("Failed to create admin in User table", zap.Error(err))
+		return models.User{}, errors.New("failed to create admin in User table")
 	}
+	logger.Info("Admin created successfully in User table", zap.String("user_id", newUser.ID.String()))
+
 
 	return newUser, nil
 }

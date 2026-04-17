@@ -1,12 +1,12 @@
 package services
 
 import (
+	"auth/models"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/sushantpardhi/shared/db"
 	"github.com/sushantpardhi/shared/logger"
-	"github.com/sushantpardhi/shared/models"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"

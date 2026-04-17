@@ -18,8 +18,6 @@ RUN CGO_ENABLED=0 go build -o auth-service
 FROM alpine:latest
 WORKDIR /app
 COPY --from=builder /app/auth-service .
-# Copy the service .env file for godotenv
-COPY auth-service/.env .env
 
 EXPOSE 8001
 CMD ["./auth-service"]
