@@ -20,7 +20,7 @@ func main() {
 
 	// Load Environment Variables
 	logger.Info("Loading environment variables")
-	if err := env.LoadEnv(""); err != nil {
+	if err := env.LoadEnv(); err != nil {
 		logger.Fatal("Failed to load environment variables", zap.Error(err))
 	}
 

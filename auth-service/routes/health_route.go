@@ -6,6 +6,5 @@ import (
 )
 
 func healthRoutes(app *gin.RouterGroup) {
-	// app.GET("/health", middleware.AuthMiddleware(), middleware.AdminOnly(), health.GetHealth)
 	app.GET("/health", health.GetHealth)
 }

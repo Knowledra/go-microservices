@@ -70,6 +70,7 @@ func CreateAdmin(input models.RegisterAdmin) (models.User, error) {
 	}
 	logger.Info("Admin created successfully in User table", zap.String("user_id", newUser.ID.String()))
 
+	// TODO: Call the User-Service API and add Admin data to Admin table in users db
 
 	return newUser, nil
 }

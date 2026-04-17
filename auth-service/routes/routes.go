@@ -14,7 +14,6 @@ func Init(app *gin.Engine) {
 	})
 
 	api := app.Group("/api/v1")
-	// adminRoutes(api)
 	healthRoutes(api)
 	authRoutes(api)
 }
