@@ -2,7 +2,8 @@ package routes
 
 import (
 	"auth/controllers"
-	middleware "auth/middlewares"
+
+	middleware "github.com/sushantpardhi/shared/middlewares"
 
 	"github.com/gin-gonic/gin"
 )

@@ -1,0 +1,32 @@
+services:
+  auth-service:
+    container_name: auth-service
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile
+    env_file:
+      - ./auth-service/.env.production
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./logs/prod:/logs
+    environment:
+      - GIN_MODE=release
+      - APP_ENV=production
+    restart: unless-stopped
+
+  user-service:
+    container_name: user-service
+    build:
+      context: .
+      dockerfile: user-service/Dockerfile
+    env_file:
+      - ./user-service/.env.production
+    ports:
+      - "5002:5002"
+    volumes:
+      - ./logs/prod:/logs
+    environment:
+      - GIN_MODE=release
+      - APP_ENV=production
+    restart: unless-stopped

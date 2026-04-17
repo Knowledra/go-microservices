@@ -1,12 +1,13 @@
 package controllers
 
 import (
+	"auth/models"
 	"auth/services"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sushantpardhi/shared/logger"
-	"github.com/sushantpardhi/shared/models"
+
 	"github.com/sushantpardhi/shared/response"
 	"go.uber.org/zap"
 )

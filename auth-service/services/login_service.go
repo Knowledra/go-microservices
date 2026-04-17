@@ -1,10 +1,13 @@
 package services
 
 import (
+	"auth/models"
+
 	"github.com/sushantpardhi/shared/db"
 	"github.com/sushantpardhi/shared/jwtToken"
+
 	"github.com/sushantpardhi/shared/logger"
-	"github.com/sushantpardhi/shared/models"
+
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )

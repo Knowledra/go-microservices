@@ -1,0 +1,30 @@
+services:
+  auth-service:
+    container_name: dev-auth-service
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile
+    env_file:
+      - ./auth-service/.env.development
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./logs/dev:/logs
+    environment:
+      - GIN_MODE=debug
+      - APP_ENV=development
+
+  user-service:
+    container_name: dev-user-service
+    build:
+      context: .
+      dockerfile: user-service/Dockerfile
+    env_file:
+      - ./user-service/.env.development
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./logs/dev:/logs
+    environment:
+      - GIN_MODE=debug
+      - APP_ENV=development

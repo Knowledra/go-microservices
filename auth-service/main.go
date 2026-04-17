@@ -1,7 +1,9 @@
 package main
 
 import (
+	"auth/models"
 	"auth/routes"
+	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -18,27 +20,33 @@ func main() {
 
 	// Load Environment Variables
 	logger.Info("Loading environment variables")
-	if err := env.LoadEnv(""); err != nil {
+	if err := env.LoadEnv(); err != nil {
 		logger.Fatal("Failed to load environment variables", zap.Error(err))
 	}
 
 	// Check Environment Variables
 	logger.Info("Validating environment variables")
-	if err := env.CheckEnv(); err != nil {
+	if err := env.CheckEnv("PORT", "DATABASE_URL", "ADMIN_PASS", "ACCESS_TOKEN_SECRET"); err != nil {
 		logger.Fatal("Environment validation failed", zap.Error(err))
 	}
 
 	// Set Gin Mode
-	// if env.Environment == "production" {
-	// 	gin.SetMode(gin.ReleaseMode)
-	// 	logger.Info("Gin mode set to release")
-	// } else {
-	// 	logger.Info("Gin mode set to debug")
-	// }
+	Environment := os.Getenv("APP_ENV")
+	if Environment == "production" {
+		gin.SetMode(gin.ReleaseMode)
+		logger.Info("Gin mode set to release")
+	} else {
+		gin.SetMode(gin.DebugMode)
+		logger.Info("Gin mode set to debug")
+	}
 
 	app := gin.Default()
 
 	db.ConnectDB()
+
+	if err := models.Migrate(db.DB); err != nil {
+		log.Fatal("Migration failed:", err)
+	}
 
 	routes.Init(app)
 

@@ -1,17 +1,20 @@
 package services
 
 import (
+	"auth/models"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/sushantpardhi/shared/db"
-	"github.com/sushantpardhi/shared/models"
+	"github.com/sushantpardhi/shared/logger"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
 func setupLoginTestDB(t *testing.T) {
+	logger.Init("test")
+
 	database, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	assert.NoError(t, err)
 

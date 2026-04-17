@@ -1,13 +1,14 @@
 package services
 
 import (
+	"auth/models"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/sushantpardhi/shared/db"
 	"github.com/sushantpardhi/shared/logger"
-	"github.com/sushantpardhi/shared/models"
+
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -20,7 +21,7 @@ func setupTestDB(t *testing.T) {
 	assert.NoError(t, err)
 
 	// migrate schema
-	err = database.AutoMigrate(&models.User{}, &models.Admin{})
+	err = database.AutoMigrate(&models.User{})
 	assert.NoError(t, err)
 
 	db.DB = database
