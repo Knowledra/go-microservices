@@ -17,21 +17,18 @@ func CreateAdmin(c *gin.Context) {
 	// Bind json
 	var input models.RegisterAdmin
 
-	logger.Info("Binding JSON input for CreateAdmin")
 	if err := c.ShouldBindJSON(&input); err != nil {
 		logger.Error("Invalid Input", zap.Error(err))
 		response.Error(c, http.StatusBadRequest, "Invalid Input", err)
 		return
 	}
-	logger.Info("JSON input bound successfully")
 
-	user, err := services.CreateAdminUser(input)
+	user, admin, err := services.CreateAdminUser(input)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Failed to create admin", err)
 		return
 	}
-	// Create Admin Profile
 
 	logger.Info("Admin created successfully", zap.String("user_id", user.ID.String()))
-	response.Success(c, http.StatusCreated, "Admin created", gin.H{"user": user})
+	response.Success(c, http.StatusCreated, "Admin created", gin.H{"user": user, "admin": admin})
 }
