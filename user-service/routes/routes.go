@@ -9,11 +9,10 @@ import (
 func Init(app *gin.Engine) {
 	app.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{
-			"message": "Welcome to Auth Service API",
+			"message": "Welcome to User Service API",
 		})
 	})
 
 	api := app.Group("/api/v1")
 	healthRoutes(api)
-	authRoutes(api)
 }

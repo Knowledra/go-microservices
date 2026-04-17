@@ -26,17 +26,19 @@ func main() {
 
 	// Check Environment Variables
 	logger.Info("Validating environment variables")
-	if err := env.CheckEnv(); err != nil {
+	if err := env.CheckEnv("PORT", "DATABASE_URL", "ADMIN_PASS", "ACCESS_TOKEN_SECRET"); err != nil {
 		logger.Fatal("Environment validation failed", zap.Error(err))
 	}
 
 	// Set Gin Mode
-	// if env.Environment == "production" {
-	// 	gin.SetMode(gin.ReleaseMode)
-	// 	logger.Info("Gin mode set to release")
-	// } else {
-	// 	logger.Info("Gin mode set to debug")
-	// }
+	Environment := os.Getenv("APP_ENV")
+	if Environment == "production" {
+		gin.SetMode(gin.ReleaseMode)
+		logger.Info("Gin mode set to release")
+	} else {
+		gin.SetMode(gin.DebugMode)
+		logger.Info("Gin mode set to debug")
+	}
 
 	app := gin.Default()
 

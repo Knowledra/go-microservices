@@ -4,8 +4,10 @@ go 1.25.0
 
 require (
 	github.com/gin-gonic/gin v1.12.0
+	github.com/google/uuid v1.6.0
 	github.com/sushantpardhi/shared v0.0.0
 	go.uber.org/zap v1.27.1
+	gorm.io/gorm v1.31.1
 // ... other requirements
 )
 
@@ -52,5 +54,4 @@ require (
 	google.golang.org/protobuf v1.36.10 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gorm.io/driver/postgres v1.6.0 // indirect
-	gorm.io/gorm v1.31.1 // indirect
 )

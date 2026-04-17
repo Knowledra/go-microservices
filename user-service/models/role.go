@@ -4,18 +4,30 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
+
+type Base struct {
+	ID        uuid.UUID `gorm:"type:uuid;primaryKey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+func (b *Base) BeforeCreate(tx *gorm.DB) error {
+	if b.ID == uuid.Nil {
+		b.ID = uuid.New()
+	}
+	return nil
+}
 
 type Admin struct {
 	Base
 	UserID uuid.UUID `gorm:"type:uuid;not null;unique"`
-	// User   User      `gorm:"foreignKey:UserID"`
 }
 
 type Teacher struct {
 	Base
-	UserID uuid.UUID `gorm:"type:uuid;not null;unique" json:"user_id"`
-	// User                  User       `gorm:"foreignKey:UserID"`
+	UserID                uuid.UUID  `gorm:"type:uuid;not null;unique" json:"user_id"`
 	EmployeeID            string     `gorm:"type:varchar(50);uniqueIndex" json:"teacher_employee_id"`
 	DepartmentID          uuid.UUID  `gorm:"type:uuid" json:"teacher_department_id"`
 	DateOfBirth           *time.Time `gorm:"type:timestamp" json:"teacher_date_of_birth"`
@@ -31,8 +43,7 @@ type Teacher struct {
 
 type Student struct {
 	Base
-	UserID uuid.UUID `json:"user_id" gorm:"type:uuid;not null;unique" `
-	// User           User            `gorm:"foreignKey:UserID"`
+	UserID         uuid.UUID       `json:"user_id" gorm:"type:uuid;not null;unique" `
 	PRN            string          `json:"prn" gorm:"type:varchar(50);uniqueIndex" `
 	MobileNumber   string          `json:"student_mobile_number" gorm:"type:varchar(20)" `
 	DepartmentID   uuid.UUID       `json:"department_id" gorm:"type:uuid" `
@@ -44,21 +55,18 @@ type Student struct {
 	EnrollmentDate *time.Time      `json:"student_enrollment_date"`
 	StudentStatus  string          `json:"student_status" gorm:"type:varchar(50);default:'active'" ` // Active, Graduated
 	Address        string          `json:"student_address" gorm:"type:text" `
-	Department     *Department     `json:"department,omitempty"`
-	Class          *Class          `json:"class,omitempty"`
 	Parents        []Parent        `gorm:"many2many:student_parents;" json:"parents"`
 	StudentParents []StudentParent `json:"student_parents" gorm:"constraint:OnDelete:CASCADE;"`
 }
 
 type Parent struct {
 	Base
-	UserID uuid.UUID `json:"user_id" gorm:"type:uuid;not null;unique" `
-	// User           User      `gorm:"foreignKey:UserID"`
-	Occupation     string `json:"parent_occupation" gorm:"type:varchar(100)" `
-	PhonePrimary   string `json:"parent_phone_primary" gorm:"type:varchar(20)" `
-	PhoneSecondary string `json:"parent_phone_secondary" gorm:"type:varchar(20)" `
-	Address        string `json:"parent_address" gorm:"type:text" `
-	BloodGroup     string `json:"parent_blood_group" gorm:"type:varchar(10)" `
+	UserID         uuid.UUID `json:"user_id" gorm:"type:uuid;not null;unique" `
+	Occupation     string    `json:"parent_occupation" gorm:"type:varchar(100)" `
+	PhonePrimary   string    `json:"parent_phone_primary" gorm:"type:varchar(20)" `
+	PhoneSecondary string    `json:"parent_phone_secondary" gorm:"type:varchar(20)" `
+	Address        string    `json:"parent_address" gorm:"type:text" `
+	BloodGroup     string    `json:"parent_blood_group" gorm:"type:varchar(10)" `
 
 	Students       []Student       `gorm:"many2many:student_parents;" json:"students"`
 	StudentParents []StudentParent `json:"student_parents"`
