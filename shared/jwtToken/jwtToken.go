@@ -29,7 +29,7 @@ func GenerateToken(userID, email, role string) (string, error) {
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			Issuer:    "eduplat",
+			Issuer:    "knowledra",
 		},
 	}
 

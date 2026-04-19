@@ -32,3 +32,25 @@ func CreateAdmin(c *gin.Context) {
 	logger.Ctx(c).Info("Admin created successfully", zap.String("user_id", user.ID.String()))
 	response.Success(c, http.StatusCreated, "Admin created", gin.H{"user": user, "admin": admin})
 }
+
+func DeleteAdmin(c *gin.Context) {
+	logger.Ctx(c).Info("DeleteAdmin endpoint hit")
+	// Get user_id from ctx
+	userId := c.MustGet("user_id").(string)
+
+	// Delete admin
+	err := services.DeleteAdminUser(c, userId)
+	if err != nil {
+		logger.Ctx(c).Error("Failed to delete admin", zap.Error(err))
+		response.Error(c, http.StatusInternalServerError, "Failed to delete admin", err)
+		return
+	}
+
+	// Remove cookies for deleted user
+	logger.Info("Removing cookies")
+	c.SetCookie("access_token", "", -1, "/", "", true, true)
+	logger.Info("Cookies removed successfully")
+
+	logger.Ctx(c).Info("Admin deleted successfully", zap.String("user_id", userId))
+	response.Success(c, http.StatusOK, "Admin deleted", gin.H{"user": userId})
+}

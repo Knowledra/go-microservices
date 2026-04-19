@@ -29,3 +29,11 @@ func CreateAdminProfile(ctx context.Context, input models.Admin) (models.Admin, 
 
 	return newAdmin, nil
 }
+
+func DeleteAdminProfile(ctx context.Context, userId string) error {
+	if err := db.DB.Where("id = ?", userId).Delete(&models.Admin{}).Error; err != nil {
+		logger.Ctx(ctx).Error("Failed to delete admin from User table", zap.Error(err))
+		return errors.New("failed to delete admin from User table")
+	}
+	return nil
+}

@@ -13,5 +13,5 @@ func authRoutes(app *gin.RouterGroup) {
 	authentication.POST("/logout", middleware.AuthMiddleware(), controllers.Logout)
 
 	authentication.POST("/create/admin", controllers.CreateAdmin)
-
+	authentication.DELETE("/delete/admin", middleware.AuthMiddleware(), controllers.DeleteAdmin)
 }
