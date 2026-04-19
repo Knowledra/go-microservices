@@ -18,6 +18,7 @@ func CreateStudentProfile(ctx context.Context, input models.Student) (models.Stu
 		LastName: input.LastName,
 		Class:    input.Class,
 		ParentID: input.ParentID,
+		Relation: input.Relation,
 	}
 
 	logger.Ctx(ctx).Info("Saving Student in Student Table", zap.String("user_id", newStudent.ID.String()))
@@ -28,4 +29,12 @@ func CreateStudentProfile(ctx context.Context, input models.Student) (models.Stu
 	logger.Ctx(ctx).Info("Student created successfully in Student table", zap.String("user_id", newStudent.ID.String()))
 
 	return newStudent, nil
+}
+
+func DeleteStudentProfile(ctx context.Context, userId string) error {
+	if err := db.DB.Where("id = ?", userId).Delete(&models.Student{}).Error; err != nil {
+		logger.Ctx(ctx).Error("Failed to delete student from User table", zap.Error(err))
+		return errors.New("failed to delete student from User table")
+	}
+	return nil
 }

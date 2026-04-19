@@ -5,14 +5,14 @@ import (
 	"gorm.io/gorm"
 )
 
-func (u *AuthUser) BeforeCreate(tx *gorm.DB) error {
+func (u *User) BeforeCreate(tx *gorm.DB) error {
 	if u.ID == uuid.Nil {
 		u.ID = uuid.New()
 	}
 	return nil
 }
 
-type AuthUser struct {
+type User struct {
 	ID        uuid.UUID      `gorm:"type:uuid;primaryKey" json:"id"`
 	Email     string         `json:"email" binding:"required,email"`
 	Password  string         `json:"password" binding:"required,min=8"`
@@ -23,28 +23,28 @@ type AuthUser struct {
 }
 
 type RegisterAdmin struct {
-	AuthUser
+	User
 	Name          string `json:"name" binding:"required"`
 	LastName      string `json:"last_name" binding:"required"`
 	AdminPassword string `json:"admin_password" binding:"required"`
 }
 
 type RegisterTeacher struct {
-	AuthUser
+	User
 	Name           string `json:"name" binding:"required"`
 	LastName       string `json:"last_name" binding:"required"`
 	Specialization string `json:"specialization" binding:"required"`
 }
 
 type RegisterStudent struct {
-	AuthUser
+	User
 	Name     string `json:"name" binding:"required"`
 	LastName string `json:"last_name" binding:"required"`
 	Class    string `json:"class" binding:"required"`
 }
 
 type RegisterParent struct {
-	AuthUser
+	User
 	Name     string `json:"name" binding:"required"`
 	LastName string `json:"last_name" binding:"required"`
 }

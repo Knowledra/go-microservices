@@ -55,16 +55,3 @@ func UpdateAdmin(c *gin.Context) {
 	logger.Ctx(c).Info("Admin updated successfully", zap.String("user_id", userId))
 	response.Success(c, http.StatusOK, "Admin updated", gin.H{"user": userId})
 }
-
-func DeleteAdmin(ctx *gin.Context) {
-	logger.Ctx(ctx).Info("Deleting Admin Profile")
-	userId := ctx.Param("user_id")
-	err := services.DeleteAdminProfile(ctx, userId)
-	if err != nil {
-		logger.Ctx(ctx).Error("Failed to delete admin", zap.Error(err))
-		response.Error(ctx, http.StatusInternalServerError, "Failed to delete admin", err)
-		return
-	}
-	logger.Ctx(ctx).Info("Admin Profile deleted successfully", zap.String("user_id", userId))
-	response.Success(ctx, http.StatusOK, "Admin Profile deleted", nil)
-}

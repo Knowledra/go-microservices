@@ -15,15 +15,23 @@ import (
 	"go.uber.org/zap"
 )
 
-func GetUserByEmail(ctx context.Context, email string) (models.AuthUser, error) {
-	var user models.AuthUser
+func GetUserByEmail(ctx context.Context, email string) (models.User, error) {
+	var user models.User
 	if err := db.DB.Where("email = ?", email).First(&user).Error; err != nil {
-		return models.AuthUser{}, err
+		return models.User{}, err
 	}
 	return user, nil
 }
 
-func CreateUserByRole(ctx context.Context, auth models.AuthUser, body map[string]any) (models.AuthUser, json.RawMessage, error) {
+func GetUserByID(ctx context.Context, id string) (models.User, error) {
+	var user models.User
+	if err := db.DB.Where("id = ?", id).First(&user).Error; err != nil {
+		return models.User{}, err
+	}
+	return user, nil
+}
+
+func CreateUserByRole(ctx context.Context, auth models.User, body map[string]any) (models.User, json.RawMessage, error) {
 	switch strings.ToLower(auth.Role) {
 	case "admin":
 		return CreateAdmin(ctx, auth, body)
@@ -34,20 +42,20 @@ func CreateUserByRole(ctx context.Context, auth models.AuthUser, body map[string
 	case "parent":
 		return CreateParent(ctx, auth, body)
 	default:
-		return models.AuthUser{}, nil, errors.New("invalid role")
+		return models.User{}, nil, errors.New("invalid role")
 	}
 }
 
-func saveAuthUser(ctx context.Context, auth *models.AuthUser) (models.AuthUser, error) {
+func saveAuthUser(ctx context.Context, auth *models.User) (models.User, error) {
 	if err := db.DB.Create(auth).Error; err != nil {
 		logger.Ctx(ctx).Error("Failed to save auth user", zap.Error(err))
-		return models.AuthUser{}, errors.New("failed to create auth user")
+		return models.User{}, errors.New("failed to create auth user")
 	}
 	return *auth, nil
 }
 
 func rollbackAuthUser(ctx context.Context, id uuid.UUID) {
-	if err := db.DB.Where("id = ?", id).Delete(&models.AuthUser{}).Error; err != nil {
+	if err := db.DB.Where("id = ?", id).Delete(&models.User{}).Error; err != nil {
 		logger.Ctx(ctx).Error("Failed to rollback auth user", zap.Error(err))
 	}
 }

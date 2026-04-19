@@ -9,17 +9,22 @@ import (
 	"github.com/sushantpardhi/shared/callAPI"
 )
 
-func CreateParent(ctx context.Context, auth models.AuthUser, body map[string]any) (models.AuthUser, json.RawMessage, error) {
+func CreateParent(ctx context.Context, auth models.User, body map[string]any) (createdAuth models.User, responseBody json.RawMessage, err error) {
 	name := getString(body, "name")
 	lastName := getString(body, "last_name")
 	if name == "" || lastName == "" {
-		return models.AuthUser{}, nil, errors.New("name and last_name are required for parent")
+		return models.User{}, nil, errors.New("name and last_name are required for parent")
 	}
 
-	createdAuth, err := saveAuthUser(ctx, &auth)
+	createdAuth, err = saveAuthUser(ctx, &auth)
 	if err != nil {
-		return models.AuthUser{}, nil, err
+		return
 	}
+	defer func() {
+		if err != nil {
+			rollbackAuthUser(ctx, createdAuth.ID)
+		}
+	}()
 
 	payload := map[string]any{
 		"id":           createdAuth.ID,
@@ -28,11 +33,6 @@ func CreateParent(ctx context.Context, auth models.AuthUser, body map[string]any
 		"phone_number": getString(body, "phone_number"),
 	}
 
-	responseBody, err := callAPI.CallAPI(ctx, "POST", "http://user-service:8002/api/v1/profile/create/parent", payload)
-	if err != nil {
-		rollbackAuthUser(ctx, createdAuth.ID)
-		return models.AuthUser{}, nil, err
-	}
-
-	return createdAuth, responseBody, nil
+	responseBody, err = callAPI.CallAPI(ctx, "POST", "http://user-service:8002/api/v1/profile/create/parent", payload)
+	return
 }

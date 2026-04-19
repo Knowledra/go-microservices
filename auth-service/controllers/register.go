@@ -3,16 +3,26 @@ package controllers
 import (
 	"auth/models"
 	"auth/services"
+	"crypto/rand"
+	"encoding/hex"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sushantpardhi/shared/logger"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/sushantpardhi/shared/response"
-	"go.uber.org/zap"
 )
+
+func generateRandomPassword(length int) string {
+	buf := make([]byte, (length+1)/2)
+	if _, err := rand.Read(buf); err != nil {
+		return "TempPass123!"
+	}
+	pw := hex.EncodeToString(buf)
+	return pw[:length]
+}
 
 func CreateUser(c *gin.Context) {
 	var body map[string]any
@@ -23,9 +33,10 @@ func CreateUser(c *gin.Context) {
 
 	// Extract auth safely
 	email, _ := body["email"].(string)
-	password, _ := body["password"].(string)
+	password := generateRandomPassword(10)
 	role, _ := body["role"].(string)
 
+	role = strings.TrimSpace(strings.ToLower(role))
 	email = strings.ToLower(email)
 
 	if email == "" || password == "" || role == "" {
@@ -35,7 +46,7 @@ func CreateUser(c *gin.Context) {
 
 	// Check existing user
 	existing, _ := services.GetUserByEmail(c, email)
-	if existing.ID.String() != "" {
+	if existing.ID != uuid.Nil {
 		response.Error(c, 400, "user already exists", nil)
 		return
 	}
@@ -47,7 +58,7 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	auth := models.AuthUser{
+	auth := models.User{
 		Email:    email,
 		Password: string(hashed),
 		Role:     strings.ToLower(role),
@@ -60,31 +71,10 @@ func CreateUser(c *gin.Context) {
 	}
 
 	response.Success(c, http.StatusCreated, "user created", gin.H{
-		"id":        createdAuth.ID,
-		"email":     createdAuth.Email,
-		"role":      createdAuth.Role,
-		"is_active": createdAuth.IsActive,
+		"id":                 createdAuth.ID,
+		"email":              createdAuth.Email,
+		"role":               createdAuth.Role,
+		"is_active":          createdAuth.IsActive,
+		"temporary_password": password,
 	})
-}
-
-func DeleteUser(c *gin.Context) {
-	logger.Ctx(c).Info("DeleteAdmin endpoint hit")
-	// Get user_id from ctx
-	userId := c.MustGet("user_id").(string)
-
-	// Delete admin
-	err := services.DeleteAdminUser(c, userId)
-	if err != nil {
-		logger.Ctx(c).Error("Failed to delete admin", zap.Error(err))
-		response.Error(c, http.StatusInternalServerError, "Failed to delete admin", err)
-		return
-	}
-
-	// Remove cookies for deleted user
-	logger.Info("Removing cookies")
-	c.SetCookie("access_token", "", -1, "/", "", true, true)
-	logger.Info("Cookies removed successfully")
-
-	logger.Ctx(c).Info("Admin deleted successfully", zap.String("user_id", userId))
-	response.Success(c, http.StatusOK, "Admin deleted", gin.H{"user": userId})
 }

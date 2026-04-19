@@ -14,6 +14,5 @@ func adminroutes(app *gin.RouterGroup) {
 	profile.POST("/create/student", controllers.CreateStudent)
 	profile.POST("/create/parent", controllers.CreateParent)
 
-	profile.DELETE("/delete/admin/:user_id", middleware.AuthMiddleware(), controllers.DeleteAdmin)
 	profile.PUT("/update/admin", middleware.AuthMiddleware(), controllers.UpdateAdmin)
 }

@@ -30,6 +30,7 @@ type Student struct {
 	Class     string    `gorm:"type:varchar(100)" json:"class"`
 	ParentID  uuid.UUID `gorm:"type:uuid;index" json:"parent_id"`
 	Parent    *Parent   `gorm:"foreignKey:ParentID" json:"parent,omitempty"`
+	Relation  string    `gorm:"type:varchar(100)" json:"relation" binding:"required"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

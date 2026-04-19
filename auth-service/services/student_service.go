@@ -3,8 +3,6 @@ package services
 import (
 	"auth/models"
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 
@@ -13,33 +11,40 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func CreateStudent(ctx context.Context, auth models.AuthUser, body map[string]any) (models.AuthUser, json.RawMessage, error) {
+func CreateStudent(ctx context.Context, auth models.User, body map[string]any) (createdAuth models.User, responseBody json.RawMessage, err error) {
+	// Getting required fields for student profile
 	name := getString(body, "name")
 	lastName := getString(body, "last_name")
-	if name == "" || lastName == "" {
-		return models.AuthUser{}, nil, errors.New("name and last_name are required for student")
+	relation := getString(body, "relation")
+	if name == "" || lastName == "" || relation == "" {
+		return models.User{}, nil, errors.New("name, last_name, and relation are required for student")
 	}
 
 	parentID, err := getUUID(body, "parent_id")
 	createdParent := false
 	if err != nil {
-		return models.AuthUser{}, nil, err
+		return models.User{}, nil, err
 	}
 	if parentID == uuid.Nil {
 		parentID, err = createParentForStudent(ctx, body)
 		if err != nil {
-			return models.AuthUser{}, nil, err
+			return models.User{}, nil, err
 		}
 		createdParent = true
 	}
 
-	createdAuth, err := saveAuthUser(ctx, &auth)
+	createdAuth, err = saveAuthUser(ctx, &auth)
 	if err != nil {
 		if createdParent {
 			rollbackParentAccount(ctx, parentID)
 		}
-		return models.AuthUser{}, nil, err
+		return
 	}
+	defer func() {
+		if err != nil {
+			rollbackAuthUser(ctx, createdAuth.ID)
+		}
+	}()
 
 	payload := map[string]any{
 		"id":        createdAuth.ID,
@@ -47,39 +52,37 @@ func CreateStudent(ctx context.Context, auth models.AuthUser, body map[string]an
 		"last_name": lastName,
 		"class":     getString(body, "class"),
 		"parent_id": parentID,
+		"relation":  relation,
 	}
 
-	responseBody, err := callAPI.CallAPI(ctx, "POST", "http://user-service:8002/api/v1/profile/create/student", payload)
+	responseBody, err = callAPI.CallAPI(ctx, "POST", "http://user-service:8002/api/v1/profile/create/student", payload)
 	if err != nil {
-		rollbackAuthUser(ctx, createdAuth.ID)
 		if createdParent {
 			rollbackParentAccount(ctx, parentID)
 		}
-		return models.AuthUser{}, nil, err
+		return
 	}
 
-	return createdAuth, responseBody, nil
+	return
 }
 
 func createParentForStudent(ctx context.Context, body map[string]any) (uuid.UUID, error) {
 	parentName := getString(body, "parent_name")
 	parentLastName := getString(body, "parent_last_name")
 	parentEmail := getString(body, "parent_email")
+
 	if parentName == "" || parentLastName == "" || parentEmail == "" {
 		return uuid.Nil, errors.New("parent_name, parent_last_name, and parent_email are required when creating a student")
 	}
 
-	parentPassword := getString(body, "parent_password")
-	if parentPassword == "" {
-		parentPassword = generateRandomPassword(12)
-	}
+	parentPassword := uuid.New().String()
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(parentPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return uuid.Nil, err
 	}
 
-	parentAuth := models.AuthUser{
+	parentAuth := models.User{
 		Email:    parentEmail,
 		Password: string(hashedPassword),
 		Role:     "parent",
@@ -109,13 +112,4 @@ func createParentForStudent(ctx context.Context, body map[string]any) (uuid.UUID
 
 func rollbackParentAccount(ctx context.Context, id uuid.UUID) {
 	rollbackAuthUser(ctx, id)
-}
-
-func generateRandomPassword(length int) string {
-	buf := make([]byte, (length+1)/2)
-	if _, err := rand.Read(buf); err != nil {
-		return "TempPass123!"
-	}
-	pw := hex.EncodeToString(buf)
-	return pw[:length]
 }

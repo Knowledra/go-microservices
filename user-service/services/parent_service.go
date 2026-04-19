@@ -28,3 +28,11 @@ func CreateParentProfile(ctx context.Context, input models.Parent) (models.Paren
 
 	return newParent, nil
 }
+
+func DeleteParentProfile(ctx context.Context, userId string) error {
+	if err := db.DB.Where("id = ?", userId).Delete(&models.Parent{}).Error; err != nil {
+		logger.Ctx(ctx).Error("Failed to delete parent from User table", zap.Error(err))
+		return errors.New("failed to delete parent from User table")
+	}
+	return nil
+}
