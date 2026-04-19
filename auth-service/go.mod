@@ -4,20 +4,12 @@ go 1.25.0
 
 require (
 	github.com/gin-gonic/gin v1.12.0
-	github.com/golang-jwt/jwt/v5 v5.3.1
-	github.com/stretchr/testify v1.11.1
 	github.com/sushantpardhi/shared v0.0.0
 	go.uber.org/zap v1.27.1
 	golang.org/x/crypto v0.48.0
-	gorm.io/driver/sqlite v1.6.0
 )
 
-require (
-	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/mattn/go-sqlite3 v1.14.22 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
-)
+require github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 
 require (
 	github.com/bytedance/gopkg v0.1.3 // indirect

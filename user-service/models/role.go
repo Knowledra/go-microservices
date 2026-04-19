@@ -13,3 +13,8 @@ type Admin struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
+
+type UpdateAdmin struct {
+	Name     string `json:"name" binding:"omitempty"`
+	LastName string `json:"last_name" binding:"omitempty"`
+}

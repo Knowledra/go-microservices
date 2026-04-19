@@ -32,6 +32,31 @@ func CreateAdmin(ctx *gin.Context) {
 	response.Success(ctx, http.StatusCreated, "Admin created", gin.H{"admin": admin})
 }
 
+func UpdateAdmin(c *gin.Context) {
+	logger.Ctx(c).Info("UpdateAdmin endpoint hit")
+	// Get user_id from ctx
+	userId := c.MustGet("user_id").(string)
+
+	// Bind json
+	var input models.UpdateAdmin
+	if err := c.ShouldBindJSON(&input); err != nil {
+		logger.Ctx(c).Error("Invalid Input", zap.Error(err))
+		response.Error(c, http.StatusBadRequest, "Invalid Input", err)
+		return
+	}
+
+	// Update admin
+	err := services.UpdateAdminUser(c, userId, input)
+	if err != nil {
+		logger.Ctx(c).Error("Failed to update admin", zap.Error(err))
+		response.Error(c, http.StatusInternalServerError, "Failed to update admin", err)
+		return
+	}
+
+	logger.Ctx(c).Info("Admin updated successfully", zap.String("user_id", userId))
+	response.Success(c, http.StatusOK, "Admin updated", gin.H{"user": userId})
+}
+
 func DeleteAdmin(ctx *gin.Context) {
 	logger.Ctx(ctx).Info("Deleting Admin Profile")
 	// Get user_id from ctx

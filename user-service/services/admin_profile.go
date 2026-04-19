@@ -30,6 +30,19 @@ func CreateAdminProfile(ctx context.Context, input models.Admin) (models.Admin, 
 	return newAdmin, nil
 }
 
+func UpdateAdminUser(ctx context.Context, userId string, input models.UpdateAdmin) error {
+	logger.Ctx(ctx).Info("Updating admin user in database", zap.String("user_id", userId))
+
+	if err := db.DB.Model(&models.Admin{}).
+		Where("id = ?", userId).
+		Updates(input).Error; err != nil {
+
+		logger.Ctx(ctx).Error("Failed to update admin in database", zap.Error(err))
+		return errors.New("failed to update admin in database")
+	}
+	return nil
+}
+
 func DeleteAdminProfile(ctx context.Context, userId string) error {
 	if err := db.DB.Where("id = ?", userId).Delete(&models.Admin{}).Error; err != nil {
 		logger.Ctx(ctx).Error("Failed to delete admin from User table", zap.Error(err))
