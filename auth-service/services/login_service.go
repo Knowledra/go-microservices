@@ -14,8 +14,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func Login(ctx context.Context, email, password string) (string, models.User, error) {
-	var user models.User
+func Login(ctx context.Context, email, password string) (string, models.AuthUser, error) {
+	var user models.AuthUser
 
 	// DB query
 	logger.Ctx(ctx).Info("Checking if user exists with email", zap.String("email", email))

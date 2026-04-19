@@ -15,7 +15,6 @@ func CreateAdmin(ctx *gin.Context) {
 	logger.Ctx(ctx).Info("Creating Admin Profile")
 
 	var input models.Admin
-
 	if err := ctx.ShouldBindJSON(&input); err != nil {
 		logger.Ctx(ctx).Error("Invalid Input", zap.Error(err))
 		response.Error(ctx, http.StatusBadRequest, "Invalid Input", err)
@@ -59,9 +58,7 @@ func UpdateAdmin(c *gin.Context) {
 
 func DeleteAdmin(ctx *gin.Context) {
 	logger.Ctx(ctx).Info("Deleting Admin Profile")
-	// Get user_id from ctx
 	userId := ctx.Param("user_id")
-	// Delete admin
 	err := services.DeleteAdminProfile(ctx, userId)
 	if err != nil {
 		logger.Ctx(ctx).Error("Failed to delete admin", zap.Error(err))

@@ -52,7 +52,16 @@ func CallAPI(ctx context.Context, method, url string, payload any) ([]byte, erro
 	}
 	defer resp.Body.Close()
 
-	return io.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("request failed with status %d: %s", resp.StatusCode, string(respBody))
+	}
+
+	return respBody, nil
 }
 
 // APIRequest describes a single outbound request for parallel execution.
