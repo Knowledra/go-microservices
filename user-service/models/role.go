@@ -4,7 +4,18 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
+
+type User struct {
+	ID        uuid.UUID      `gorm:"type:uuid;primaryKey" json:"id"`
+	Email     string         `json:"email" binding:"required,email"`
+	Password  string         `json:"password" binding:"required,min=8"`
+	Role      string         `json:"role" binding:"required"`
+	IsActive  bool           `json:"is_active" gorm:"default:true"`
+	IsDeleted bool           `json:"is_deleted" gorm:"default:false"`
+	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"`
+}
 
 type Admin struct {
 	ID        uuid.UUID `gorm:"type:uuid;not null;unique" json:"id"`
