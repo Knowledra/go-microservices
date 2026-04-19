@@ -4,22 +4,36 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
-func CallAPI(ctx context.Context, method, url string, payload interface{}) ([]byte, error) {
-	client := &http.Client{}
+// Singleton HTTP client with connection pooling and timeout.
+var client = &http.Client{
+	Timeout: 10 * time.Second,
+	Transport: &http.Transport{
+		MaxIdleConns:        100,
+		MaxIdleConnsPerHost: 10,
+		IdleConnTimeout:     90 * time.Second,
+	},
+}
 
+func CallAPI(ctx context.Context, method, url string, payload any) ([]byte, error) {
 	var body io.Reader
 	if payload != nil {
 		jsonData, _ := json.Marshal(payload)
 		body = bytes.NewBuffer(jsonData)
 	}
 
-	req, _ := http.NewRequestWithContext(ctx, method, url, body)
+	req, err := http.NewRequestWithContext(ctx, method, url, body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
 	req.Header.Set("Content-Type", "application/json")
 
 	var reqID string
@@ -39,4 +53,36 @@ func CallAPI(ctx context.Context, method, url string, payload interface{}) ([]by
 	defer resp.Body.Close()
 
 	return io.ReadAll(resp.Body)
+}
+
+// APIRequest describes a single outbound request for parallel execution.
+type APIRequest struct {
+	Method  string
+	URL     string
+	Payload any
+}
+
+// APIResult holds the response (or error) for one parallel request.
+type APIResult struct {
+	Body []byte
+	Err  error
+}
+
+// CallAPIsParallel fires multiple API requests concurrently and returns
+// results in the same order as the input slice.
+func CallAPIsParallel(ctx context.Context, requests []APIRequest) []APIResult {
+	results := make([]APIResult, len(requests))
+	var wg sync.WaitGroup
+
+	for i, r := range requests {
+		wg.Add(1)
+		go func(idx int, req APIRequest) {
+			defer wg.Done()
+			body, err := CallAPI(ctx, req.Method, req.URL, req.Payload)
+			results[idx] = APIResult{Body: body, Err: err}
+		}(i, r)
+	}
+
+	wg.Wait()
+	return results
 }

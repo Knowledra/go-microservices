@@ -96,5 +96,7 @@ func CreateAdminUser(ctx context.Context, input models.RegisterAdmin) (models.Us
 		adminData = apiResponse.Data.Admin
 	}
 
+	// TODO: If profile creation fails, revert back and delete the user from User table
+
 	return newUser, adminData, nil
 }
