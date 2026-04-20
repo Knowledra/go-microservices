@@ -9,7 +9,7 @@ import (
 	"github.com/sushantpardhi/shared/callAPI"
 )
 
-func CreateTeacher(ctx context.Context, auth models.User, body map[string]any) (createdAuth models.User, responseBody json.RawMessage, err error) {
+func CreateTeacher(c context.Context, auth models.User, body map[string]any) (createdAuth models.User, responseBody json.RawMessage, err error) {
 	name := getString(body, "name")
 	lastName := getString(body, "last_name")
 	specialization := getString(body, "specialization")
@@ -20,14 +20,14 @@ func CreateTeacher(ctx context.Context, auth models.User, body map[string]any) (
 		return models.User{}, nil, errors.New("name and last_name are required for teacher")
 	}
 
-	createdAuth, err = saveAuthUser(ctx, &auth)
+	createdAuth, err = saveAuthUser(c, &auth)
 	if err != nil {
 		return
 	}
 
 	defer func() {
 		if err != nil {
-			rollbackAuthUser(ctx, createdAuth.ID)
+			rollbackAuthUser(c, createdAuth.ID)
 		}
 	}()
 
@@ -38,6 +38,6 @@ func CreateTeacher(ctx context.Context, auth models.User, body map[string]any) (
 		"specialization": specialization,
 	}
 
-	responseBody, err = callAPI.CallAPI(ctx, "POST", "http://user-service:8002/api/v1/profile/create/teacher", payload)
+	responseBody, err = callAPI.CallAPI(c, "POST", "http://user-service:8002/api/v1/profile/create/teacher", payload)
 	return
 }

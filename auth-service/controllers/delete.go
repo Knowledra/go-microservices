@@ -11,12 +11,12 @@ import (
 )
 
 func DeleteSelf(c *gin.Context) {
-	logger.Ctx(c).Info("DeleteSelf endpoint hit")
+	logger.C(c).Info("DeleteSelf endpoint hit")
 	userId := c.MustGet("user_id").(string)
 
 	err := services.DeleteUserAccount(c, userId)
 	if err != nil {
-		logger.Ctx(c).Error("Failed to delete user", zap.Error(err))
+		logger.C(c).Error("Failed to delete user", zap.Error(err))
 		response.Error(c, http.StatusInternalServerError, "Failed to delete user", err)
 		return
 	}
@@ -25,6 +25,6 @@ func DeleteSelf(c *gin.Context) {
 	c.SetCookie("access_token", "", -1, "/", "", true, true)
 	logger.Info("Cookies removed successfully")
 
-	logger.Ctx(c).Info("User deleted successfully", zap.String("user_id", userId))
+	logger.C(c).Info("User deleted successfully", zap.String("user_id", userId))
 	response.Success(c, http.StatusOK, "User deleted", gin.H{"user": userId})
 }

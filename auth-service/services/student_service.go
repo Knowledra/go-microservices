@@ -11,7 +11,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func CreateStudent(ctx context.Context, auth models.User, body map[string]any) (createdAuth models.User, responseBody json.RawMessage, err error) {
+func CreateStudent(c context.Context, auth models.User, body map[string]any) (createdAuth models.User, responseBody json.RawMessage, err error) {
 	// Getting required fields for student profile
 	name := getString(body, "name")
 	lastName := getString(body, "last_name")
@@ -26,23 +26,23 @@ func CreateStudent(ctx context.Context, auth models.User, body map[string]any) (
 		return models.User{}, nil, err
 	}
 	if parentID == uuid.Nil {
-		parentID, err = createParentForStudent(ctx, body)
+		parentID, err = createParentForStudent(c, body)
 		if err != nil {
 			return models.User{}, nil, err
 		}
 		createdParent = true
 	}
 
-	createdAuth, err = saveAuthUser(ctx, &auth)
+	createdAuth, err = saveAuthUser(c, &auth)
 	if err != nil {
 		if createdParent {
-			rollbackParentAccount(ctx, parentID)
+			rollbackParentAccount(c, parentID)
 		}
 		return
 	}
 	defer func() {
 		if err != nil {
-			rollbackAuthUser(ctx, createdAuth.ID)
+			rollbackAuthUser(c, createdAuth.ID)
 		}
 	}()
 
@@ -55,10 +55,10 @@ func CreateStudent(ctx context.Context, auth models.User, body map[string]any) (
 		"relation":  relation,
 	}
 
-	responseBody, err = callAPI.CallAPI(ctx, "POST", "http://user-service:8002/api/v1/profile/create/student", payload)
+	responseBody, err = callAPI.CallAPI(c, "POST", "http://user-service:8002/api/v1/profile/create/student", payload)
 	if err != nil {
 		if createdParent {
-			rollbackParentAccount(ctx, parentID)
+			rollbackParentAccount(c, parentID)
 		}
 		return
 	}
@@ -66,7 +66,7 @@ func CreateStudent(ctx context.Context, auth models.User, body map[string]any) (
 	return
 }
 
-func createParentForStudent(ctx context.Context, body map[string]any) (uuid.UUID, error) {
+func createParentForStudent(c context.Context, body map[string]any) (uuid.UUID, error) {
 	parentName := getString(body, "parent_name")
 	parentLastName := getString(body, "parent_last_name")
 	parentEmail := getString(body, "parent_email")
@@ -89,7 +89,7 @@ func createParentForStudent(ctx context.Context, body map[string]any) (uuid.UUID
 		IsActive: true,
 	}
 
-	createdParentAuth, err := saveAuthUser(ctx, &parentAuth)
+	createdParentAuth, err := saveAuthUser(c, &parentAuth)
 	if err != nil {
 		return uuid.Nil, err
 	}
@@ -101,15 +101,15 @@ func createParentForStudent(ctx context.Context, body map[string]any) (uuid.UUID
 		"phone_number": getString(body, "parent_phone_primary"),
 	}
 
-	_, err = callAPI.CallAPI(ctx, "POST", "http://user-service:8002/api/v1/profile/create/parent", payload)
+	_, err = callAPI.CallAPI(c, "POST", "http://user-service:8002/api/v1/profile/create/parent", payload)
 	if err != nil {
-		rollbackAuthUser(ctx, createdParentAuth.ID)
+		rollbackAuthUser(c, createdParentAuth.ID)
 		return uuid.Nil, err
 	}
 
 	return createdParentAuth.ID, nil
 }
 
-func rollbackParentAccount(ctx context.Context, id uuid.UUID) {
-	rollbackAuthUser(ctx, id)
+func rollbackParentAccount(C context.Context, id uuid.UUID) {
+	rollbackAuthUser(C, id)
 }

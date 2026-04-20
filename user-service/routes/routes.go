@@ -7,8 +7,8 @@ import (
 )
 
 func Init(app *gin.Engine) {
-	app.GET("/", func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, gin.H{
+	app.GET("/", func(C *gin.Context) {
+		C.JSON(http.StatusOK, gin.H{
 			"message": "Welcome to User Service API",
 		})
 	})

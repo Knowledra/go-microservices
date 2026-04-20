@@ -54,13 +54,3 @@ type Parent struct {
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
-
-type UpdateAdmin struct {
-	Name     string `json:"name" binding:"omitempty"`
-	LastName string `json:"last_name" binding:"omitempty"`
-}
-
-type UpdateTeacher struct {
-	Name     string `json:"name" binding:"omitempty"`
-	LastName string `json:"last_name" binding:"omitempty"`
-}

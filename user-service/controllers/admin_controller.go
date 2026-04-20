@@ -11,35 +11,33 @@ import (
 	"go.uber.org/zap"
 )
 
-func CreateAdmin(ctx *gin.Context) {
-	logger.Ctx(ctx).Info("Creating Admin Profile")
+func CreateAdmin(C *gin.Context) {
+	logger.C(C).Info("Creating Admin Profile")
 
 	var input models.Admin
-	if err := ctx.ShouldBindJSON(&input); err != nil {
-		logger.Ctx(ctx).Error("Invalid Input", zap.Error(err))
-		response.Error(ctx, http.StatusBadRequest, "Invalid Input", err)
+	if err := C.ShouldBindJSON(&input); err != nil {
+		logger.C(C).Error("Invalid Input", zap.Error(err))
+		response.Error(C, http.StatusBadRequest, "Invalid Input", err)
 		return
 	}
 
-	admin, err := services.CreateAdminProfile(ctx, input)
+	admin, err := services.CreateAdminProfile(C, input)
 	if err != nil {
-		response.Error(ctx, http.StatusInternalServerError, "Failed to create admin", err)
+		response.Error(C, http.StatusInternalServerError, "Failed to create admin", err)
 		return
 	}
 
-	logger.Ctx(ctx).Info("Admin Profile created successfully", zap.String("user_id", admin.ID.String()))
-	response.Success(ctx, http.StatusCreated, "Admin created", gin.H{"admin": admin})
+	logger.C(C).Info("Admin Profile created successfully", zap.String("user_id", admin.ID.String()))
+	response.Success(C, http.StatusCreated, "Admin created", gin.H{"admin": admin})
 }
 
-func UpdateAdmin(c *gin.Context) {
-	logger.Ctx(c).Info("UpdateAdmin endpoint hit")
-	// Get user_id from ctx
-	userId := c.MustGet("user_id").(string)
+func UpdateAdmin(c *gin.Context, userId string) {
+	logger.C(c).Info("UpdateAdmin endpoint hit")
 
 	// Bind json
 	var input models.UpdateAdmin
 	if err := c.ShouldBindJSON(&input); err != nil {
-		logger.Ctx(c).Error("Invalid Input", zap.Error(err))
+		logger.C(c).Error("Invalid Input", zap.Error(err))
 		response.Error(c, http.StatusBadRequest, "Invalid Input", err)
 		return
 	}
@@ -47,11 +45,10 @@ func UpdateAdmin(c *gin.Context) {
 	// Update admin
 	err := services.UpdateAdminUser(c, userId, input)
 	if err != nil {
-		logger.Ctx(c).Error("Failed to update admin", zap.Error(err))
+		logger.C(c).Error("Failed to update admin", zap.Error(err))
 		response.Error(c, http.StatusInternalServerError, "Failed to update admin", err)
 		return
 	}
 
-	logger.Ctx(c).Info("Admin updated successfully", zap.String("user_id", userId))
-	response.Success(c, http.StatusOK, "Admin updated", gin.H{"user": userId})
+	logger.C(c).Info("Admin updated successfully", zap.String("user_id", userId))
 }

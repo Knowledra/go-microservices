@@ -23,23 +23,23 @@ var client = &http.Client{
 	},
 }
 
-func CallAPI(ctx context.Context, method, url string, payload any) ([]byte, error) {
+func CallAPI(c context.Context, method, url string, payload any) ([]byte, error) {
 	var body io.Reader
 	if payload != nil {
 		jsonData, _ := json.Marshal(payload)
 		body = bytes.NewBuffer(jsonData)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, url, body)
+	req, err := http.NewRequestWithContext(c, method, url, body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	var reqID string
-	if c, ok := ctx.(*gin.Context); ok {
+	if c, ok := c.(*gin.Context); ok {
 		reqID = c.GetString("X-Request-Id")
-	} else if val, ok := ctx.Value("X-Request-Id").(string); ok {
+	} else if val, ok := c.Value("X-Request-Id").(string); ok {
 		reqID = val
 	}
 	if reqID != "" {
@@ -79,7 +79,7 @@ type APIResult struct {
 
 // CallAPIsParallel fires multiple API requests concurrently and returns
 // results in the same order as the input slice.
-func CallAPIsParallel(ctx context.Context, requests []APIRequest) []APIResult {
+func CallAPIsParallel(c context.Context, requests []APIRequest) []APIResult {
 	results := make([]APIResult, len(requests))
 	var wg sync.WaitGroup
 
@@ -87,7 +87,7 @@ func CallAPIsParallel(ctx context.Context, requests []APIRequest) []APIResult {
 		wg.Add(1)
 		go func(idx int, req APIRequest) {
 			defer wg.Done()
-			body, err := CallAPI(ctx, req.Method, req.URL, req.Payload)
+			body, err := CallAPI(c, req.Method, req.URL, req.Payload)
 			results[idx] = APIResult{Body: body, Err: err}
 		}(i, r)
 	}

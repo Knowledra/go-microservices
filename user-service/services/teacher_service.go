@@ -10,8 +10,8 @@ import (
 	"go.uber.org/zap"
 )
 
-func CreateTeacherProfile(ctx context.Context, input models.Teacher) (models.Teacher, error) {
-	logger.Ctx(ctx).Info("Creating new teacher user in database", zap.String("user_id", input.ID.String()))
+func CreateTeacherProfile(C context.Context, input models.Teacher) (models.Teacher, error) {
+	logger.C(C).Info("Creating new teacher user in database", zap.String("user_id", input.ID.String()))
 	newTeacher := models.Teacher{
 		ID:             input.ID,
 		Name:           input.Name,
@@ -19,24 +19,24 @@ func CreateTeacherProfile(ctx context.Context, input models.Teacher) (models.Tea
 		Specialization: input.Specialization,
 	}
 
-	logger.Ctx(ctx).Info("Saving Teacher in Teacher Table", zap.String("user_id", newTeacher.ID.String()))
+	logger.C(C).Info("Saving Teacher in Teacher Table", zap.String("user_id", newTeacher.ID.String()))
 	if err := db.DB.Create(&newTeacher).Error; err != nil {
-		logger.Ctx(ctx).Error("Failed to create teacher in Teacher table", zap.Error(err))
+		logger.C(C).Error("Failed to create teacher in Teacher table", zap.Error(err))
 		return models.Teacher{}, errors.New("failed to create teacher in Teacher table")
 	}
-	logger.Ctx(ctx).Info("Teacher created successfully in Teacher table", zap.String("user_id", newTeacher.ID.String()))
+	logger.C(C).Info("Teacher created successfully in Teacher table", zap.String("user_id", newTeacher.ID.String()))
 
 	return newTeacher, nil
 }
 
-func UpdateTeacherUser(ctx context.Context, userId string, input models.UpdateTeacher) error {
-	logger.Ctx(ctx).Info("Updating teacher user in database", zap.String("user_id", userId))
+func UpdateTeacherUser(C context.Context, teacherID string, input models.UpdateTeacher) error {
+	logger.C(C).Info("Updating teacher user in database", zap.String("user_id", teacherID))
 
 	if err := db.DB.Model(&models.Teacher{}).
-		Where("id = ?", userId).
+		Where("id = ?", teacherID).
 		Updates(input).Error; err != nil {
 
-		logger.Ctx(ctx).Error("Failed to update teacher in database", zap.Error(err))
+		logger.C(C).Error("Failed to update teacher in database", zap.Error(err))
 		return errors.New("failed to update teacher in database")
 	}
 	return nil

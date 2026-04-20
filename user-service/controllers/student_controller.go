@@ -11,22 +11,41 @@ import (
 	"go.uber.org/zap"
 )
 
-func CreateStudent(ctx *gin.Context) {
-	logger.Ctx(ctx).Info("Creating Student Profile")
+func CreateStudent(C *gin.Context) {
+	logger.C(C).Info("Creating Student Profile")
 
 	var input models.Student
-	if err := ctx.ShouldBindJSON(&input); err != nil {
-		logger.Ctx(ctx).Error("Invalid Input", zap.Error(err))
-		response.Error(ctx, http.StatusBadRequest, "Invalid Input", err)
+	if err := C.ShouldBindJSON(&input); err != nil {
+		logger.C(C).Error("Invalid Input", zap.Error(err))
+		response.Error(C, http.StatusBadRequest, "Invalid Input", err)
 		return
 	}
 
-	student, err := services.CreateStudentProfile(ctx, input)
+	student, err := services.CreateStudentProfile(C, input)
 	if err != nil {
-		response.Error(ctx, http.StatusInternalServerError, "Failed to create student", err)
+		response.Error(C, http.StatusInternalServerError, "Failed to create student", err)
 		return
 	}
 
-	logger.Ctx(ctx).Info("Student Profile created successfully", zap.String("user_id", student.ID.String()))
-	response.Success(ctx, http.StatusCreated, "Student created", gin.H{"student": student})
+	logger.C(C).Info("Student Profile created successfully", zap.String("user_id", student.ID.String()))
+	response.Success(C, http.StatusCreated, "Student created", gin.H{"student": student})
+}
+
+func UpdateStudent(C *gin.Context, userId string) {
+	logger.C(C).Info("Updating Student Profile")
+
+	var input models.UpdateStudent
+	if err := C.ShouldBindJSON(&input); err != nil {
+		logger.C(C).Error("Invalid Input", zap.Error(err))
+		response.Error(C, http.StatusBadRequest, "Invalid Input", err)
+		return
+	}
+
+	err := services.UpdateStudentUser(C, userId, input)
+	if err != nil {
+		response.Error(C, http.StatusInternalServerError, "Failed to update student", err)
+		return
+	}
+
+	logger.C(C).Info("Student Profile updated successfully", zap.String("user_id", userId))
 }

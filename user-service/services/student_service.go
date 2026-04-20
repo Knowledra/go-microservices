@@ -10,8 +10,8 @@ import (
 	"go.uber.org/zap"
 )
 
-func CreateStudentProfile(ctx context.Context, input models.Student) (models.Student, error) {
-	logger.Ctx(ctx).Info("Creating new student user in database", zap.String("user_id", input.ID.String()))
+func CreateStudentProfile(C context.Context, input models.Student) (models.Student, error) {
+	logger.C(C).Info("Creating new student user in database", zap.String("user_id", input.ID.String()))
 	newStudent := models.Student{
 		ID:       input.ID,
 		Name:     input.Name,
@@ -21,12 +21,25 @@ func CreateStudentProfile(ctx context.Context, input models.Student) (models.Stu
 		Relation: input.Relation,
 	}
 
-	logger.Ctx(ctx).Info("Saving Student in Student Table", zap.String("user_id", newStudent.ID.String()))
+	logger.C(C).Info("Saving Student in Student Table", zap.String("user_id", newStudent.ID.String()))
 	if err := db.DB.Create(&newStudent).Error; err != nil {
-		logger.Ctx(ctx).Error("Failed to create student in Student table", zap.Error(err))
+		logger.C(C).Error("Failed to create student in Student table", zap.Error(err))
 		return models.Student{}, errors.New("failed to create student in Student table")
 	}
-	logger.Ctx(ctx).Info("Student created successfully in Student table", zap.String("user_id", newStudent.ID.String()))
+	logger.C(C).Info("Student created successfully in Student table", zap.String("user_id", newStudent.ID.String()))
 
 	return newStudent, nil
+}
+
+func UpdateStudentUser(C context.Context, studentID string, input models.UpdateStudent) error {
+	logger.C(C).Info("Updating student profile in database", zap.String("student_id", studentID))
+
+	if err := db.DB.Model(&models.Student{}).
+		Where("id = ?", studentID).
+		Updates(input).Error; err != nil {
+
+		logger.C(C).Error("Failed to update student profile in database", zap.Error(err))
+		return errors.New("failed to update student profile in database")
+	}
+	return nil
 }

@@ -16,22 +16,22 @@ import (
 )
 
 func GetHealth(c *gin.Context) {
-	logger.Ctx(c).Info("Getting health status")
+	logger.C(c).Info("Getting health status")
 	start := time.Now()
 
 	service := os.Getenv("SERVICE_NAME")
 
-	ctx, cancel := context.WithTimeout(c.Request.Context(), 2*time.Second)
+	C, cancel := context.WithTimeout(c.Request.Context(), 2*time.Second)
 	defer cancel()
 
 	dbStatus := "up"
 	sqlDB, err := db.DB.DB()
 	if err != nil {
 		dbStatus = "down"
-		logger.Ctx(c).Error("DB connection error: " + err.Error())
-	} else if err := sqlDB.PingContext(ctx); err != nil {
+		logger.C(c).Error("DB connection error: " + err.Error())
+	} else if err := sqlDB.PingContext(C); err != nil {
 		dbStatus = "down"
-		logger.Ctx(c).Error("DB ping failed: " + err.Error())
+		logger.C(c).Error("DB ping failed: " + err.Error())
 	}
 
 	var m runtime.MemStats
@@ -42,10 +42,10 @@ func GetHealth(c *gin.Context) {
 	status := "up"
 	if dbStatus == "down" {
 		status = "degraded"
-		logger.Ctx(c).Error("Health degraded: database down")
+		logger.C(c).Error("Health degraded: database down")
 	}
 
-	logger.Ctx(c).Info("Health check completed in " + time.Since(start).String())
+	logger.C(c).Info("Health check completed in " + time.Since(start).String())
 
 	response.Success(c, http.StatusOK, "Health check completed", gin.H{
 		"status":  status,

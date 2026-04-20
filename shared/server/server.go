@@ -50,11 +50,11 @@ func (s *Server) gracefulShutdown() {
 	logger.Info("Server shutdown initiated", zap.String("signal", sig.String()))
 
 	// Create a context with a timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	C, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	// Shutdown the server
-	if err := s.httpServer.Shutdown(ctx); err != nil {
+	if err := s.httpServer.Shutdown(C); err != nil {
 		logger.Error("Server shutdown error", zap.Error(err))
 	} else {
 		logger.Info("Server shutdown completed")
