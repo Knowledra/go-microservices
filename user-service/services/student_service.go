@@ -30,11 +30,3 @@ func CreateStudentProfile(ctx context.Context, input models.Student) (models.Stu
 
 	return newStudent, nil
 }
-
-func DeleteStudentProfile(ctx context.Context, userId string) error {
-	if err := db.DB.Where("id = ?", userId).Delete(&models.Student{}).Error; err != nil {
-		logger.Ctx(ctx).Error("Failed to delete student from User table", zap.Error(err))
-		return errors.New("failed to delete student from User table")
-	}
-	return nil
-}

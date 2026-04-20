@@ -59,3 +59,8 @@ type UpdateAdmin struct {
 	Name     string `json:"name" binding:"omitempty"`
 	LastName string `json:"last_name" binding:"omitempty"`
 }
+
+type UpdateTeacher struct {
+	Name     string `json:"name" binding:"omitempty"`
+	LastName string `json:"last_name" binding:"omitempty"`
+}
