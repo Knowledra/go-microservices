@@ -8,11 +8,10 @@ import (
 )
 
 func adminroutes(app *gin.RouterGroup) {
-	profile := app.Group("/profile")
-	profile.POST("/create/admin", controllers.CreateAdmin)
-	profile.POST("/create/teacher", controllers.CreateTeacher)
-	profile.POST("/create/student", controllers.CreateStudent)
-	profile.POST("/create/parent", controllers.CreateParent)
+	app.POST("/create/admin", controllers.CreateAdmin)
+	app.POST("/create/teacher", controllers.CreateTeacher)
+	app.POST("/create/student", controllers.CreateStudent)
+	app.POST("/create/parent", controllers.CreateParent)
 
-	profile.PUT("/update/user/:role/:user_id", middleware.AuthMiddleware(), middleware.AdminOnly(), controllers.UpdateUser)
+	app.PUT("/update/user/:role/:user_id", middleware.AuthMiddleware(), middleware.AdminOnly(), controllers.UpdateUser)
 }

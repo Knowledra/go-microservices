@@ -1,5 +1,5 @@
 services:
-  auth-service:
+  dev-auth-service:
     container_name: dev-auth-service
     build:
       context: .
@@ -14,7 +14,7 @@ services:
       - GIN_MODE=debug
       - APP_ENV=development
 
-  user-service:
+  dev-user-service:
     container_name: dev-user-service
     build:
       context: .
