@@ -28,3 +28,18 @@ services:
     environment:
       - GIN_MODE=debug
       - APP_ENV=development
+
+  dev-quiz-service:
+    container_name: dev-quiz-service
+    build:
+      context: .
+      dockerfile: quiz-service/Dockerfile
+    env_file:
+      - ./quiz-service/.env.development
+    ports:
+      - "8003:8003"
+    volumes:
+      - ./logs/dev:/logs
+    environment:
+      - GIN_MODE=debug
+      - APP_ENV=development

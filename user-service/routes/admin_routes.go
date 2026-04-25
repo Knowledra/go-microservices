@@ -18,5 +18,10 @@ func adminroutes(app *gin.RouterGroup) {
 	deleteGroup := app.Group("/delete")
 	deleteGroup.DELETE("/profile/:role/:user_id", middleware.AuthMiddleware(), middleware.AdminOrSuperAdminOnly(), controllers.DeleteUserProfile)
 
+	// Internal routes for inter-service rollback (no auth middleware).
+	// These are only reachable within the Docker network.
+	internal := app.Group("/internal")
+	internal.DELETE("/delete/profile/:role/:user_id", controllers.DeleteUserProfile)
+
 	app.PUT("/update/user/:role/:user_id", middleware.AuthMiddleware(), middleware.AdminOnly(), controllers.UpdateUser)
 }

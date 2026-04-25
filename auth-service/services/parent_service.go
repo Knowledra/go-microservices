@@ -39,7 +39,6 @@ func CreateParent(c context.Context, auth models.User, body map[string]any) (cre
 	responseBody, err = callAPI.CallAPI(c, "POST", "http://dev-user-service:8002/api/v1/user/create/parent", payload)
 	if err != nil {
 		logger.C(c).Error("Failed to create parent profile", zap.Error(err))
-		rollbackParentProfileAccount(c, createdAuth.ID)
 		return
 	}
 
@@ -47,7 +46,7 @@ func CreateParent(c context.Context, auth models.User, body map[string]any) (cre
 }
 
 func rollbackParentProfileAccount(c context.Context, id any) {
-	if _, err := callAPI.CallAPI(c, "DELETE", fmt.Sprintf("http://dev-user-service:8002/api/v1/user/delete/profile/parent/%v", id), nil); err != nil {
+	if _, err := callAPI.CallAPI(c, "DELETE", fmt.Sprintf("http://dev-user-service:8002/api/v1/user/internal/delete/profile/parent/%v", id), nil); err != nil {
 		logger.C(c).Error("Failed to rollback parent profile", zap.Error(err), zap.String("parent_id", fmt.Sprintf("%v", id)))
 	}
 }

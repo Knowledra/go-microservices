@@ -58,7 +58,7 @@ func saveAuthUser(c context.Context, auth *models.User) (models.User, error) {
 }
 
 func rollbackAuthUser(c context.Context, id uuid.UUID) {
-	if err := db.DB.Where("id = ?", id).Delete(&models.User{}).Error; err != nil {
+	if err := db.DB.Unscoped().Where("id = ?", id).Delete(&models.User{}).Error; err != nil {
 		logger.C(c).Error("Failed to rollback auth user", zap.Error(err))
 	}
 }

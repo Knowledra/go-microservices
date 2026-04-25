@@ -30,3 +30,19 @@ services:
       - GIN_MODE=release
       - APP_ENV=production
     restart: unless-stopped
+
+  quiz-service:
+    container_name: quiz-service
+    build:
+      context: .
+      dockerfile: quiz-service/Dockerfile
+    env_file:
+      - ./quiz-service/.env.production
+    ports:
+      - "5003:5003"
+    volumes:
+      - ./logs/prod:/logs
+    environment:
+      - GIN_MODE=release
+      - APP_ENV=production
+    restart: unless-stopped
