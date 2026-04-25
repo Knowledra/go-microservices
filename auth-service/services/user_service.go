@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -58,14 +59,24 @@ func saveAuthUser(c context.Context, auth *models.User) (models.User, error) {
 }
 
 func rollbackAuthUser(c context.Context, id uuid.UUID) {
+	if id == uuid.Nil {
+		return
+	}
 	if err := db.DB.Unscoped().Where("id = ?", id).Delete(&models.User{}).Error; err != nil {
 		logger.C(c).Error("Failed to rollback auth user", zap.Error(err))
 	}
 }
 
 func getString(body map[string]any, key string) string {
-	value, _ := body[key].(string)
-	return strings.TrimSpace(value)
+	if val, ok := body[key]; ok && val != nil {
+		switch v := val.(type) {
+		case string:
+			return strings.TrimSpace(v)
+		default:
+			return strings.TrimSpace(fmt.Sprintf("%v", v))
+		}
+	}
+	return ""
 }
 
 func getUUID(body map[string]any, key string) (uuid.UUID, error) {

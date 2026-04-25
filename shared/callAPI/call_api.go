@@ -26,7 +26,10 @@ var client = &http.Client{
 func CallAPI(c context.Context, method, url string, payload any) ([]byte, error) {
 	var body io.Reader
 	if payload != nil {
-		jsonData, _ := json.Marshal(payload)
+		jsonData, err := json.Marshal(payload)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal payload: %w", err)
+		}
 		body = bytes.NewBuffer(jsonData)
 	}
 
@@ -89,11 +92,16 @@ func CallAPIsParallel(c context.Context, requests []APIRequest) []APIResult {
 	results := make([]APIResult, len(requests))
 	var wg sync.WaitGroup
 
+	var derivedCtx context.Context = c
+	if ginCtx, ok := c.(*gin.Context); ok {
+		derivedCtx = ginCtx.Copy()
+	}
+
 	for i, r := range requests {
 		wg.Add(1)
 		go func(idx int, req APIRequest) {
 			defer wg.Done()
-			body, err := CallAPI(c, req.Method, req.URL, req.Payload)
+			body, err := CallAPI(derivedCtx, req.Method, req.URL, req.Payload)
 			results[idx] = APIResult{Body: body, Err: err}
 		}(i, r)
 	}

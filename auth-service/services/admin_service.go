@@ -15,7 +15,7 @@ import (
 )
 
 func CreateAdmin(c context.Context, auth models.User, body map[string]any) (createdAuth models.User, responseBody json.RawMessage, err error) {
-	adminSecret := os.Getenv("ADMIN_PASS")
+	adminSecret := getString(body, "admin_pass")
 	name := getString(body, "name")
 	lastName := getString(body, "last_name")
 
