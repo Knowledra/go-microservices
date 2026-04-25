@@ -1,6 +1,9 @@
 package middleware
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/sushantpardhi/shared/jwtToken"
@@ -9,10 +12,21 @@ import (
 func AuthMiddleware() gin.HandlerFunc {
 	// check if user is authenticated
 	return func(c *gin.Context) {
-		tokenStr, err := c.Cookie("access_token")
-		if err != nil {
-			c.AbortWithStatusJSON(401, gin.H{"error": "unauthorized"})
-			return
+		tokenStr := ""
+
+		// Prefer Authorization bearer token if provided
+		authHeader := c.GetHeader("Authorization")
+		if authHeader != "" && strings.HasPrefix(strings.ToLower(authHeader), "bearer ") {
+			tokenStr = strings.TrimSpace(authHeader[7:])
+		}
+
+		if tokenStr == "" {
+			var err error
+			tokenStr, err = c.Cookie("access_token")
+			if err != nil {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+				return
+			}
 		}
 
 		// validate token
@@ -48,6 +62,30 @@ func AdminOnly() gin.HandlerFunc {
 		// check if role exists and is admin
 		if !exists || role != "admin" {
 			c.AbortWithStatusJSON(403, gin.H{"error": "forbidden!! Can only be accessed by Admins"})
+			return
+		}
+		c.Next()
+	}
+}
+
+func SuperAdminOnly() gin.HandlerFunc {
+	// check if user is super admin
+	return func(c *gin.Context) {
+		role, exists := c.Get("role")
+		// check if role exists and is super_admin
+		if !exists || role != "super_admin" {
+			c.AbortWithStatusJSON(403, gin.H{"error": "forbidden!! Can only be accessed by Super Admin"})
+			return
+		}
+		c.Next()
+	}
+}
+
+func AdminOrSuperAdminOnly() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		role, exists := c.Get("role")
+		if !exists || (role != "admin" && role != "super_admin") {
+			c.AbortWithStatusJSON(403, gin.H{"error": "forbidden!! Can only be accessed by Admin or Super Admin"})
 			return
 		}
 		c.Next()

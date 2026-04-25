@@ -8,10 +8,10 @@ import (
 )
 
 func authRoutes(app *gin.RouterGroup) {
-	authentication := app.Group("/auth")
-	authentication.POST("/login", controllers.Login)
-	authentication.POST("/logout", middleware.AuthMiddleware(), controllers.Logout)
+	app.POST("/login", controllers.Login)
+	app.POST("/logout", middleware.AuthMiddleware(), controllers.Logout)
 
-	authentication.POST("/create/admin", controllers.CreateAdmin)
-
+	app.POST("/create/super-admin", controllers.CreateSuperAdmin)
+	app.POST("/create/user", controllers.CreateUser)
+	app.DELETE("/delete/user", middleware.AuthMiddleware(), controllers.DeleteSelf)
 }

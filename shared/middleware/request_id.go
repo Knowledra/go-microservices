@@ -11,16 +11,16 @@ func RequestID() gin.HandlerFunc {
 		if reqID == "" {
 			reqID = uuid.New().String()
 		}
-		
+
 		// Set in Gin context so it can be retrieved by logger
 		c.Set("X-Request-Id", reqID)
-		
+
 		// Set in request header so it propagates if we re-use standard http logic
 		c.Request.Header.Set("X-Request-Id", reqID)
-		
+
 		// Set in response header for the client
 		c.Header("X-Request-Id", reqID)
-		
+
 		c.Next()
 	}
 }

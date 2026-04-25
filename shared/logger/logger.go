@@ -83,17 +83,17 @@ func Fatal(msg string, fields ...zap.Field) {
 	log.Fatal(msg, fields...)
 }
 
-func Ctx(ctx context.Context) *zap.Logger {
-	if ctx == nil {
+func C(c context.Context) *zap.Logger {
+	if c == nil {
 		return log
 	}
 
 	var reqID string
 
 	// Check if it's a gin Context
-	if c, ok := ctx.(*gin.Context); ok {
+	if c, ok := c.(*gin.Context); ok {
 		reqID = c.GetString("X-Request-Id")
-	} else if val, ok := ctx.Value("X-Request-Id").(string); ok {
+	} else if val, ok := c.Value("X-Request-Id").(string); ok {
 		reqID = val
 	}
 
