@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"strings"
 	"user/models"
 
 	"github.com/sushantpardhi/shared/db"
@@ -70,4 +71,23 @@ func UpdateSuperAdminUser(c context.Context, superAdminID string, input models.U
 		return errors.New("failed to update super admin in database")
 	}
 	return nil
+}
+
+func DeleteUserProfile(C context.Context, role, userId string) error {
+	logger.C(C).Info("Deleting user profile", zap.String("role", role), zap.String("user_id", userId))
+
+	switch strings.ToLower(role) {
+	case "admin":
+		return db.DB.Where("id = ?", userId).Delete(&models.Admin{}).Error
+	case "super_admin":
+		return db.DB.Where("id = ?", userId).Delete(&models.SuperAdmin{}).Error
+	case "teacher":
+		return db.DB.Where("id = ?", userId).Delete(&models.Teacher{}).Error
+	case "student":
+		return db.DB.Where("id = ?", userId).Delete(&models.Student{}).Error
+	case "parent":
+		return db.DB.Where("id = ?", userId).Delete(&models.Parent{}).Error
+	default:
+		return errors.New("invalid role for profile deletion")
+	}
 }

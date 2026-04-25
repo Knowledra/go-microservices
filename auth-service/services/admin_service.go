@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/sushantpardhi/shared/callAPI"
@@ -46,6 +47,7 @@ func CreateAdmin(c context.Context, auth models.User, body map[string]any) (crea
 	responseBody, err = callAPI.CallAPI(c, "POST", "http://dev-user-service:8002/api/v1/user/create/admin", payload)
 	if err != nil {
 		logger.C(c).Error("Failed to create admin profile", zap.Error(err))
+		rollbackAdminProfile(c, createdAuth.ID)
 		return
 	}
 
@@ -92,8 +94,21 @@ func CreateSuperAdmin(c context.Context, auth models.User, body map[string]any) 
 	responseBody, err = callAPI.CallAPI(c, "POST", "http://dev-user-service:8002/api/v1/user/create/super-admin", payload)
 	if err != nil {
 		logger.C(c).Error("Failed to create super admin profile", zap.Error(err))
+		rollbackSuperAdminProfile(c, createdAuth.ID)
 		return
 	}
 
 	return
+}
+
+func rollbackAdminProfile(c context.Context, id any) {
+	if _, err := callAPI.CallAPI(c, "DELETE", fmt.Sprintf("http://dev-user-service:8002/api/v1/user/delete/profile/admin/%v", id), nil); err != nil {
+		logger.C(c).Error("Failed to rollback admin profile", zap.Error(err), zap.String("admin_id", fmt.Sprintf("%v", id)))
+	}
+}
+
+func rollbackSuperAdminProfile(c context.Context, id any) {
+	if _, err := callAPI.CallAPI(c, "DELETE", fmt.Sprintf("http://dev-user-service:8002/api/v1/user/delete/profile/super-admin/%v", id), nil); err != nil {
+		logger.C(c).Error("Failed to rollback super admin profile", zap.Error(err), zap.String("super_admin_id", fmt.Sprintf("%v", id)))
+	}
 }

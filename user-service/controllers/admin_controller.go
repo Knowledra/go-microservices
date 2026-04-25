@@ -51,6 +51,25 @@ func CreateSuperAdmin(C *gin.Context) {
 	response.Success(C, http.StatusCreated, "Super Admin created", gin.H{"super_admin": superAdmin})
 }
 
+func DeleteUserProfile(c *gin.Context) {
+	role := c.Param("role")
+	userId := c.Param("user_id")
+
+	if role == "" || userId == "" {
+		logger.C(c).Error("Missing role or user_id for profile deletion")
+		response.Error(c, http.StatusBadRequest, "role and user_id are required", nil)
+		return
+	}
+
+	if err := services.DeleteUserProfile(c, role, userId); err != nil {
+		logger.C(c).Error("Failed to delete user profile", zap.String("role", role), zap.String("user_id", userId), zap.Error(err))
+		response.Error(c, http.StatusInternalServerError, "Failed to delete user profile", err)
+		return
+	}
+
+	response.Success(c, http.StatusOK, "User profile deleted", gin.H{"role": role, "user_id": userId})
+}
+
 func UpdateAdmin(c *gin.Context, userId string) {
 	logger.C(c).Info("UpdateAdmin endpoint hit")
 

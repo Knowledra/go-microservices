@@ -5,9 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/sushantpardhi/shared/callAPI"
+	"github.com/sushantpardhi/shared/logger"
+	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -60,6 +63,7 @@ func CreateStudent(c context.Context, auth models.User, body map[string]any) (cr
 		if createdParent {
 			rollbackParentAccount(c, parentID)
 		}
+		rollbackStudentProfile(c, createdAuth.ID)
 		return
 	}
 
@@ -111,5 +115,19 @@ func createParentForStudent(c context.Context, body map[string]any) (uuid.UUID, 
 }
 
 func rollbackParentAccount(C context.Context, id uuid.UUID) {
+	if err := rollbackParentProfile(C, id); err != nil {
+		logger.C(C).Error("Failed to rollback parent profile", zap.Error(err), zap.String("parent_id", id.String()))
+	}
 	rollbackAuthUser(C, id)
+}
+
+func rollbackParentProfile(C context.Context, id uuid.UUID) error {
+	_, err := callAPI.CallAPI(C, "DELETE", fmt.Sprintf("http://dev-user-service:8002/api/v1/user/delete/profile/parent/%s", id.String()), nil)
+	return err
+}
+
+func rollbackStudentProfile(C context.Context, id uuid.UUID) {
+	if _, err := callAPI.CallAPI(C, "DELETE", fmt.Sprintf("http://dev-user-service:8002/api/v1/user/delete/profile/student/%s", id.String()), nil); err != nil {
+		logger.C(C).Error("Failed to rollback student profile", zap.Error(err), zap.String("student_id", id.String()))
+	}
 }

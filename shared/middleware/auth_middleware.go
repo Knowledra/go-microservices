@@ -80,3 +80,14 @@ func SuperAdminOnly() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+func AdminOrSuperAdminOnly() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		role, exists := c.Get("role")
+		if !exists || (role != "admin" && role != "super_admin") {
+			c.AbortWithStatusJSON(403, gin.H{"error": "forbidden!! Can only be accessed by Admin or Super Admin"})
+			return
+		}
+		c.Next()
+	}
+}
