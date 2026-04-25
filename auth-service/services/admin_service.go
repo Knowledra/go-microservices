@@ -54,7 +54,7 @@ func CreateAdmin(c context.Context, auth models.User, body map[string]any) (crea
 }
 
 func CreateSuperAdmin(c context.Context, auth models.User, body map[string]any) (createdAuth models.User, responseBody json.RawMessage, err error) {
-	superAdminSecret := os.Getenv("SUPER_ADMIN_PASS")
+	superAdminSecret := getString(body, "super_admin_pass")
 	name := getString(body, "name")
 	lastName := getString(body, "last_name")
 
