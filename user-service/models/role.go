@@ -25,6 +25,14 @@ type Admin struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+type SuperAdmin struct {
+	ID        uuid.UUID `gorm:"type:uuid;not null;unique" json:"id"`
+	Name      string    `gorm:"not null" json:"name"`
+	LastName  string    `gorm:"not null" json:"last_name"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 type Teacher struct {
 	ID             uuid.UUID `gorm:"type:uuid;not null;unique" json:"id"`
 	Name           string    `gorm:"not null" json:"name"`

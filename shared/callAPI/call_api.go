@@ -46,6 +46,12 @@ func CallAPI(c context.Context, method, url string, payload any) ([]byte, error)
 		req.Header.Set("X-Request-Id", reqID)
 	}
 
+	if ginCtx, ok := c.(*gin.Context); ok {
+		if authHeader := ginCtx.GetHeader("Authorization"); authHeader != "" {
+			req.Header.Set("Authorization", authHeader)
+		}
+	}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

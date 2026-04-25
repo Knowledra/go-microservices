@@ -55,7 +55,7 @@ func CreateStudent(c context.Context, auth models.User, body map[string]any) (cr
 		"relation":  relation,
 	}
 
-	responseBody, err = callAPI.CallAPI(c, "POST", "http://user-service:8002/api/v1/profile/create/student", payload)
+	responseBody, err = callAPI.CallAPI(c, "POST", "http://dev-user-service:8002/api/v1/user/create/student", payload)
 	if err != nil {
 		if createdParent {
 			rollbackParentAccount(c, parentID)
@@ -101,7 +101,7 @@ func createParentForStudent(c context.Context, body map[string]any) (uuid.UUID, 
 		"phone_number": getString(body, "parent_phone_primary"),
 	}
 
-	_, err = callAPI.CallAPI(c, "POST", "http://user-service:8002/api/v1/profile/create/parent", payload)
+	_, err = callAPI.CallAPI(c, "POST", "http://dev-user-service:8002/api/v1/user/create/parent", payload)
 	if err != nil {
 		rollbackAuthUser(c, createdParentAuth.ID)
 		return uuid.Nil, err

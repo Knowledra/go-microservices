@@ -32,3 +32,8 @@ type UpdateParent struct {
 	Name     string `json:"name" binding:"omitempty"`
 	LastName string `json:"last_name" binding:"omitempty"`
 }
+
+type UpdateSuperAdmin struct {
+	Name     string `json:"name" binding:"omitempty"`
+	LastName string `json:"last_name" binding:"omitempty"`
+}

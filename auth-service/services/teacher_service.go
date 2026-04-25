@@ -38,6 +38,6 @@ func CreateTeacher(c context.Context, auth models.User, body map[string]any) (cr
 		"specialization": specialization,
 	}
 
-	responseBody, err = callAPI.CallAPI(c, "POST", "http://user-service:8002/api/v1/profile/create/teacher", payload)
+	responseBody, err = callAPI.CallAPI(c, "POST", "http://dev-user-service:8002/api/v1/user/create/teacher", payload)
 	return
 }

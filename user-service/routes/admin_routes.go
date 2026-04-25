@@ -8,10 +8,12 @@ import (
 )
 
 func adminroutes(app *gin.RouterGroup) {
-	app.POST("/create/admin", controllers.CreateAdmin)
-	app.POST("/create/teacher", controllers.CreateTeacher)
-	app.POST("/create/student", controllers.CreateStudent)
-	app.POST("/create/parent", controllers.CreateParent)
+	create := app.Group("/create")
+	create.POST("/super-admin", controllers.CreateSuperAdmin)
+	create.POST("/admin", middleware.AuthMiddleware(), middleware.SuperAdminOnly(), controllers.CreateAdmin)
+	create.POST("/teacher", middleware.AuthMiddleware(), middleware.AdminOnly(), controllers.CreateTeacher)
+	create.POST("/student", middleware.AuthMiddleware(), middleware.AdminOnly(), controllers.CreateStudent)
+	create.POST("/parent", middleware.AuthMiddleware(), middleware.AdminOnly(), controllers.CreateParent)
 
 	app.PUT("/update/user/:role/:user_id", middleware.AuthMiddleware(), middleware.AdminOnly(), controllers.UpdateUser)
 }

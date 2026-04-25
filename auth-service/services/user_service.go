@@ -34,6 +34,8 @@ func GetUserByID(c context.Context, id string) (models.User, error) {
 
 func CreateUserByRole(c context.Context, auth models.User, body map[string]any) (models.User, json.RawMessage, error) {
 	switch strings.ToLower(auth.Role) {
+	case "super_admin":
+		return CreateSuperAdmin(c, auth, body)
 	case "admin":
 		return CreateAdmin(c, auth, body)
 	case "teacher":

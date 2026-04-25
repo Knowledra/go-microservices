@@ -33,6 +33,6 @@ func CreateParent(c context.Context, auth models.User, body map[string]any) (cre
 		"phone_number": getString(body, "phone_number"),
 	}
 
-	responseBody, err = callAPI.CallAPI(c, "POST", "http://user-service:8002/api/v1/profile/create/parent", payload)
+	responseBody, err = callAPI.CallAPI(c, "POST", "http://dev-user-service:8002/api/v1/user/create/parent", payload)
 	return
 }

@@ -34,5 +34,8 @@ func Login(c *gin.Context) {
 	logger.C(c).Info("Cookie set successfully")
 
 	logger.C(c).Info("Login successful", zap.String("user_id", user.ID.String()))
-	response.Success(c, http.StatusOK, "Login successful", gin.H{"user": user.ID.String()})
+	response.Success(c, http.StatusOK, "Login successful", gin.H{
+		"user":  user.ID.String(),
+		"token": token,
+	})
 }

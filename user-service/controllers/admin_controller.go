@@ -31,6 +31,26 @@ func CreateAdmin(C *gin.Context) {
 	response.Success(C, http.StatusCreated, "Admin created", gin.H{"admin": admin})
 }
 
+func CreateSuperAdmin(C *gin.Context) {
+	logger.C(C).Info("Creating Super Admin Profile")
+
+	var input models.SuperAdmin
+	if err := C.ShouldBindJSON(&input); err != nil {
+		logger.C(C).Error("Invalid Input", zap.Error(err))
+		response.Error(C, http.StatusBadRequest, "Invalid Input", err)
+		return
+	}
+
+	superAdmin, err := services.CreateSuperAdminProfile(C, input)
+	if err != nil {
+		response.Error(C, http.StatusInternalServerError, "Failed to create super admin", err)
+		return
+	}
+
+	logger.C(C).Info("Super Admin Profile created successfully", zap.String("user_id", superAdmin.ID.String()))
+	response.Success(C, http.StatusCreated, "Super Admin created", gin.H{"super_admin": superAdmin})
+}
+
 func UpdateAdmin(c *gin.Context, userId string) {
 	logger.C(c).Info("UpdateAdmin endpoint hit")
 
