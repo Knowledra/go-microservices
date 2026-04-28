@@ -3,15 +3,37 @@ package logger
 import (
 	"context"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 var log *zap.Logger
 
+// ---------- writer (daily rotation aligned to midnight) ----------
+func getWriter(pattern string) zapcore.WriteSyncer {
+	writer, err := rotatelogs.New(
+		pattern, // ../logs/app-%Y-%m-%d.log
+
+		// rotate every 24h
+		rotatelogs.WithRotationTime(24*time.Hour),
+
+		// align rotation to local midnight
+		rotatelogs.WithClock(rotatelogs.Local),
+
+		// keep logs for 7 days
+		rotatelogs.WithMaxAge(7*24*time.Hour),
+	)
+	if err != nil {
+		panic(err)
+	}
+	return zapcore.AddSync(writer)
+}
+
+// ---------- init ----------
 func Init(filename string) {
 	encoder := zapcore.NewJSONEncoder(zapcore.EncoderConfig{
 		TimeKey:      "time",
@@ -23,27 +45,14 @@ func Init(filename string) {
 		EncodeCaller: zapcore.ShortCallerEncoder,
 	})
 
-	// ✅ Common log file (info + warn + error)
-	allWriter := zapcore.AddSync(&lumberjack.Logger{
-		Filename:   `../logs/` + filename + `.log`,
-		MaxSize:    1,
-		MaxBackups: 7,
-		MaxAge:     7,
-		Compress:   true,
-	})
+	// daily rotating files
+	allWriter := getWriter("../logs/" + filename + "-%Y-%m-%d.log")
 
-	// ✅ Error-only log file
 	errorFilename := "error"
 	if filename == "test" {
 		errorFilename = "test_error"
 	}
-	errorWriter := zapcore.AddSync(&lumberjack.Logger{
-		Filename:   `../logs/` + errorFilename + `.log`,
-		MaxSize:    1,
-		MaxBackups: 7,
-		MaxAge:     7,
-		Compress:   true,
-	})
+	errorWriter := getWriter("../logs/" + errorFilename + "-%Y-%m-%d.log")
 
 	consoleCore := zapcore.NewCore(
 		zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig()),
@@ -51,18 +60,15 @@ func Init(filename string) {
 		zapcore.DebugLevel,
 	)
 
-	// Core for all logs
 	allCore := zapcore.NewCore(encoder, allWriter, zapcore.InfoLevel)
-
-	// Core only for errors
 	errorCore := zapcore.NewCore(encoder, errorWriter, zapcore.ErrorLevel)
 
-	// Combine both
 	core := zapcore.NewTee(allCore, errorCore, consoleCore)
 
 	log = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
 }
 
+// ---------- log helpers ----------
 func Info(msg string, fields ...zap.Field) {
 	log.Info(msg, fields...)
 }
@@ -83,6 +89,7 @@ func Fatal(msg string, fields ...zap.Field) {
 	log.Fatal(msg, fields...)
 }
 
+// ---------- context logger (request_id support) ----------
 func C(c context.Context) *zap.Logger {
 	if c == nil {
 		return log
@@ -90,9 +97,8 @@ func C(c context.Context) *zap.Logger {
 
 	var reqID string
 
-	// Check if it's a gin Context
-	if c, ok := c.(*gin.Context); ok {
-		reqID = c.GetString("X-Request-Id")
+	if gc, ok := c.(*gin.Context); ok {
+		reqID = gc.GetString("X-Request-Id")
 	} else if val, ok := c.Value("X-Request-Id").(string); ok {
 		reqID = val
 	}

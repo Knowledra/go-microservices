@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/sushantpardhi/shared/callAPI"
 	"github.com/sushantpardhi/shared/logger"
 	"go.uber.org/zap"
@@ -19,30 +20,22 @@ func CreateParent(c context.Context, auth models.User, body map[string]any) (cre
 		return models.User{}, nil, errors.New("name and last_name are required for parent")
 	}
 
-	createdAuth, err = saveAuthUser(c, &auth)
-	if err != nil {
-		return
-	}
-	defer func() {
-		if err != nil {
-			rollbackAuthUser(c, createdAuth.ID)
+	return createUserWithProfileAtomic(c, auth, func(userID uuid.UUID) (json.RawMessage, error) {
+		payload := map[string]any{
+			"id":           userID,
+			"name":         name,
+			"last_name":    lastName,
+			"phone_number": getString(body, "phone_number"),
 		}
-	}()
 
-	payload := map[string]any{
-		"id":           createdAuth.ID,
-		"name":         name,
-		"last_name":    lastName,
-		"phone_number": getString(body, "phone_number"),
-	}
+		responseBody, callErr := callAPI.CallAPI(c, "POST", "http://dev-user-service:8002/api/v1/user/create/parent", payload)
+		if callErr != nil {
+			logger.C(c).Error("Failed to create parent profile", zap.Error(callErr))
+			return nil, callErr
+		}
 
-	responseBody, err = callAPI.CallAPI(c, "POST", "http://dev-user-service:8002/api/v1/user/create/parent", payload)
-	if err != nil {
-		logger.C(c).Error("Failed to create parent profile", zap.Error(err))
-		return
-	}
-
-	return
+		return responseBody, nil
+	}, rollbackParentProfileAccount)
 }
 
 func rollbackParentProfileAccount(c context.Context, id any) {

@@ -14,8 +14,8 @@ import (
 )
 
 func main() {
-	logger.Init("auth-service")
-	logger.Info("Auth service startup initiated")
+	logger.Init("quiz-service")
+	logger.Info("Quiz service startup initiated")
 
 	// Load Environment Variables
 	logger.Info("Loading environment variables")

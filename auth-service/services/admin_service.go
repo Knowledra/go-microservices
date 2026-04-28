@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/google/uuid"
 	"github.com/sushantpardhi/shared/callAPI"
 	"github.com/sushantpardhi/shared/db"
 	"github.com/sushantpardhi/shared/logger"
@@ -28,29 +29,21 @@ func CreateAdmin(c context.Context, auth models.User, body map[string]any) (crea
 		return models.User{}, nil, errors.New("name and last_name are required for admin")
 	}
 
-	createdAuth, err = saveAuthUser(c, &auth)
-	if err != nil {
-		return
-	}
-	defer func() {
-		if err != nil {
-			rollbackAuthUser(c, createdAuth.ID)
+	return createUserWithProfileAtomic(c, auth, func(userID uuid.UUID) (json.RawMessage, error) {
+		payload := map[string]any{
+			"id":        userID,
+			"name":      name,
+			"last_name": lastName,
 		}
-	}()
 
-	payload := map[string]any{
-		"id":        createdAuth.ID,
-		"name":      name,
-		"last_name": lastName,
-	}
+		responseBody, callErr := callAPI.CallAPI(c, "POST", "http://dev-user-service:8002/api/v1/user/create/admin", payload)
+		if callErr != nil {
+			logger.C(c).Error("Failed to create admin profile", zap.Error(callErr))
+			return nil, callErr
+		}
 
-	responseBody, err = callAPI.CallAPI(c, "POST", "http://dev-user-service:8002/api/v1/user/create/admin", payload)
-	if err != nil {
-		logger.C(c).Error("Failed to create admin profile", zap.Error(err))
-		return
-	}
-
-	return
+		return responseBody, nil
+	}, rollbackAdminProfile)
 }
 
 func CreateSuperAdmin(c context.Context, auth models.User, body map[string]any) (createdAuth models.User, responseBody json.RawMessage, err error) {
@@ -74,29 +67,21 @@ func CreateSuperAdmin(c context.Context, auth models.User, body map[string]any) 
 		return models.User{}, nil, errors.New("super admin already exists")
 	}
 
-	createdAuth, err = saveAuthUser(c, &auth)
-	if err != nil {
-		return
-	}
-	defer func() {
-		if err != nil {
-			rollbackAuthUser(c, createdAuth.ID)
+	return createUserWithProfileAtomic(c, auth, func(userID uuid.UUID) (json.RawMessage, error) {
+		payload := map[string]any{
+			"id":        userID,
+			"name":      name,
+			"last_name": lastName,
 		}
-	}()
 
-	payload := map[string]any{
-		"id":        createdAuth.ID,
-		"name":      name,
-		"last_name": lastName,
-	}
+		responseBody, callErr := callAPI.CallAPI(c, "POST", "http://dev-user-service:8002/api/v1/user/create/super-admin", payload)
+		if callErr != nil {
+			logger.C(c).Error("Failed to create super admin profile", zap.Error(callErr))
+			return nil, callErr
+		}
 
-	responseBody, err = callAPI.CallAPI(c, "POST", "http://dev-user-service:8002/api/v1/user/create/super-admin", payload)
-	if err != nil {
-		logger.C(c).Error("Failed to create super admin profile", zap.Error(err))
-		return
-	}
-
-	return
+		return responseBody, nil
+	}, rollbackSuperAdminProfile)
 }
 
 func rollbackAdminProfile(c context.Context, id any) {

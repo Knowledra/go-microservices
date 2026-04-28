@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/sushantpardhi/shared/callAPI"
 	"github.com/sushantpardhi/shared/logger"
 	"go.uber.org/zap"
@@ -23,31 +24,22 @@ func CreateTeacher(c context.Context, auth models.User, body map[string]any) (cr
 		return models.User{}, nil, errors.New("name and last_name are required for teacher")
 	}
 
-	createdAuth, err = saveAuthUser(c, &auth)
-	if err != nil {
-		return
-	}
-
-	defer func() {
-		if err != nil {
-			rollbackAuthUser(c, createdAuth.ID)
+	return createUserWithProfileAtomic(c, auth, func(userID uuid.UUID) (json.RawMessage, error) {
+		payload := map[string]any{
+			"id":             userID,
+			"name":           name,
+			"last_name":      lastName,
+			"specialization": specialization,
 		}
-	}()
 
-	payload := map[string]any{
-		"id":             createdAuth.ID,
-		"name":           name,
-		"last_name":      lastName,
-		"specialization": specialization,
-	}
+		responseBody, callErr := callAPI.CallAPI(c, "POST", "http://dev-user-service:8002/api/v1/user/create/teacher", payload)
+		if callErr != nil {
+			logger.C(c).Error("Failed to create teacher profile", zap.Error(callErr))
+			return nil, callErr
+		}
 
-	responseBody, err = callAPI.CallAPI(c, "POST", "http://dev-user-service:8002/api/v1/user/create/teacher", payload)
-	if err != nil {
-		logger.C(c).Error("Failed to create teacher profile", zap.Error(err))
-		return
-	}
-
-	return
+		return responseBody, nil
+	}, rollbackTeacherProfile)
 }
 
 func rollbackTeacherProfile(c context.Context, id any) {

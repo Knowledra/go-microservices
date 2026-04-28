@@ -15,7 +15,12 @@ import (
 	"github.com/sushantpardhi/shared/logger"
 
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
+
+type profileCreateFn func(userID uuid.UUID) (json.RawMessage, error)
+
+type profileRollbackFn func(c context.Context, id any)
 
 func GetUserByEmail(c context.Context, email string) (models.User, error) {
 	var user models.User
@@ -50,8 +55,45 @@ func CreateUserByRole(c context.Context, auth models.User, body map[string]any) 
 	}
 }
 
+func createUserWithProfileAtomic(c context.Context, auth models.User, createProfile profileCreateFn, rollbackProfile profileRollbackFn) (models.User, json.RawMessage, error) {
+	tx := db.DB.Begin()
+	if tx.Error != nil {
+		logger.C(c).Error("Failed to start transaction for user creation", zap.Error(tx.Error))
+		return models.User{}, nil, errors.New("failed to start user creation transaction")
+	}
+
+	createdAuth, err := saveAuthUserWithDB(c, tx, &auth)
+	if err != nil {
+		tx.Rollback()
+		return models.User{}, nil, err
+	}
+
+	responseBody, err := createProfile(createdAuth.ID)
+	if err != nil {
+		tx.Rollback()
+		if rollbackProfile != nil {
+			rollbackProfile(c, createdAuth.ID)
+		}
+		return models.User{}, nil, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		if rollbackProfile != nil {
+			rollbackProfile(c, createdAuth.ID)
+		}
+		logger.C(c).Error("Failed to commit transaction for user creation", zap.Error(err), zap.String("user_id", createdAuth.ID.String()))
+		return models.User{}, nil, errors.New("failed to finalize user creation")
+	}
+
+	return createdAuth, responseBody, nil
+}
+
 func saveAuthUser(c context.Context, auth *models.User) (models.User, error) {
-	if err := db.DB.Create(auth).Error; err != nil {
+	return saveAuthUserWithDB(c, db.DB, auth)
+}
+
+func saveAuthUserWithDB(c context.Context, dbConn *gorm.DB, auth *models.User) (models.User, error) {
+	if err := dbConn.Create(auth).Error; err != nil {
 		logger.C(c).Error("Failed to save auth user", zap.Error(err))
 		return models.User{}, errors.New("failed to create auth user")
 	}
