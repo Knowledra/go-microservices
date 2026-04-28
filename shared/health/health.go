@@ -16,7 +16,6 @@ import (
 )
 
 func GetHealth(c *gin.Context) {
-	logger.C(c).Info("Getting health status")
 	start := time.Now()
 
 	service := os.Getenv("SERVICE_NAME")
@@ -45,7 +44,7 @@ func GetHealth(c *gin.Context) {
 		logger.C(c).Error("Health degraded: database down")
 	}
 
-	logger.C(c).Info("Health check completed in " + time.Since(start).String())
+	logger.C(c).Info("Health check completed in " + time.Since(start).String() + ", status: " + status)
 
 	response.Success(c, http.StatusOK, "Health check completed", gin.H{
 		"status":  status,
