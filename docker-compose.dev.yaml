@@ -1,6 +1,6 @@
 services:
-  dev-auth-service:
-    container_name: dev-auth-service
+  auth-service:
+    container_name: auth-service
     build:
       context: .
       dockerfile: auth-service/Dockerfile
@@ -14,8 +14,8 @@ services:
       - GIN_MODE=debug
       - APP_ENV=development
 
-  dev-user-service:
-    container_name: dev-user-service
+  user-service:
+    container_name: user-service
     build:
       context: .
       dockerfile: user-service/Dockerfile
@@ -29,8 +29,8 @@ services:
       - GIN_MODE=debug
       - APP_ENV=development
 
-  dev-quiz-service:
-    container_name: dev-quiz-service
+  quiz-service:
+    container_name: quiz-service
     build:
       context: .
       dockerfile: quiz-service/Dockerfile
