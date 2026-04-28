@@ -43,3 +43,18 @@ services:
     environment:
       - GIN_MODE=debug
       - APP_ENV=development
+
+  email-service:
+    container_name: email-service
+    build:
+      context: .
+      dockerfile: email-service/Dockerfile
+    env_file:
+      - ./email-service/.env.development
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./logs/dev:/logs
+    environment:
+      - GIN_MODE=debug
+      - APP_ENV=development
