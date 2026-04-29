@@ -36,38 +36,32 @@ func CreateStudent(c context.Context, auth models.User, body map[string]any) (cr
 		createdParent = true
 	}
 
-	createdAuth, err = saveAuthUser(c, &auth)
+	createdAuth, responseBody, err = createUserWithProfileAtomic(c, auth, func(userID uuid.UUID) (json.RawMessage, error) {
+		payload := map[string]any{
+			"id":        userID,
+			"name":      name,
+			"last_name": lastName,
+			"class":     getString(body, "class"),
+			"parent_id": parentID,
+			"relation":  relation,
+		}
+
+		return callAPI.CallAPI(c, "POST", "http://user-service:8002/api/v1/user/create/student", payload)
+	}, func(ctx context.Context, id any) {
+		studentID, ok := id.(uuid.UUID)
+		if !ok {
+			return
+		}
+		rollbackStudentProfile(ctx, studentID)
+	})
 	if err != nil {
 		if createdParent {
 			rollbackParentAccount(c, parentID)
 		}
-		return
-	}
-	defer func() {
-		if err != nil {
-			rollbackAuthUser(c, createdAuth.ID)
-		}
-	}()
-
-	payload := map[string]any{
-		"id":        createdAuth.ID,
-		"name":      name,
-		"last_name": lastName,
-		"class":     getString(body, "class"),
-		"parent_id": parentID,
-		"relation":  relation,
+		return models.User{}, nil, err
 	}
 
-	responseBody, err = callAPI.CallAPI(c, "POST", "http://dev-user-service:8002/api/v1/user/create/student", payload)
-	if err != nil {
-		if createdParent {
-			rollbackParentAccount(c, parentID)
-		}
-		rollbackStudentProfile(c, createdAuth.ID)
-		return
-	}
-
-	return
+	return createdAuth, responseBody, nil
 }
 
 func createParentForStudent(c context.Context, body map[string]any) (uuid.UUID, error) {
@@ -93,21 +87,17 @@ func createParentForStudent(c context.Context, body map[string]any) (uuid.UUID, 
 		IsActive: true,
 	}
 
-	createdParentAuth, err := saveAuthUser(c, &parentAuth)
-	if err != nil {
-		return uuid.Nil, err
-	}
+	createdParentAuth, _, err := createUserWithProfileAtomic(c, parentAuth, func(userID uuid.UUID) (json.RawMessage, error) {
+		payload := map[string]any{
+			"id":           userID,
+			"name":         parentName,
+			"last_name":    parentLastName,
+			"phone_number": getString(body, "parent_phone_primary"),
+		}
 
-	payload := map[string]any{
-		"id":           createdParentAuth.ID,
-		"name":         parentName,
-		"last_name":    parentLastName,
-		"phone_number": getString(body, "parent_phone_primary"),
-	}
-
-	_, err = callAPI.CallAPI(c, "POST", "http://dev-user-service:8002/api/v1/user/create/parent", payload)
+		return callAPI.CallAPI(c, "POST", "http://user-service:8002/api/v1/user/create/parent", payload)
+	}, rollbackParentProfileAccount)
 	if err != nil {
-		rollbackAuthUser(c, createdParentAuth.ID)
 		return uuid.Nil, err
 	}
 
@@ -122,12 +112,12 @@ func rollbackParentAccount(C context.Context, id uuid.UUID) {
 }
 
 func rollbackParentProfile(C context.Context, id uuid.UUID) error {
-	_, err := callAPI.CallAPI(C, "DELETE", fmt.Sprintf("http://dev-user-service:8002/api/v1/user/delete/profile/parent/%s", id.String()), nil)
+	_, err := callAPI.CallAPI(C, "DELETE", fmt.Sprintf("http://user-service:8002/api/v1/user/internal/delete/profile/parent/%s", id.String()), nil)
 	return err
 }
 
 func rollbackStudentProfile(C context.Context, id uuid.UUID) {
-	if _, err := callAPI.CallAPI(C, "DELETE", fmt.Sprintf("http://dev-user-service:8002/api/v1/user/delete/profile/student/%s", id.String()), nil); err != nil {
+	if _, err := callAPI.CallAPI(C, "DELETE", fmt.Sprintf("http://user-service:8002/api/v1/user/internal/delete/profile/student/%s", id.String()), nil); err != nil {
 		logger.C(C).Error("Failed to rollback student profile", zap.Error(err), zap.String("student_id", id.String()))
 	}
 }

@@ -18,6 +18,8 @@ RUN CGO_ENABLED=0 go build -o user-service
 FROM alpine:latest
 WORKDIR /app
 COPY --from=builder /app/user-service .
+COPY user-service/.env.development ./.env.development
+COPY user-service/.env.production ./.env.production
 
 EXPOSE 8002
 CMD ["./user-service"]

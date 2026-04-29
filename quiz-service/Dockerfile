@@ -6,20 +6,20 @@ WORKDIR /app
 COPY shared /app/shared
 
 # Copy service files
-COPY auth-service/go.mod auth-service/go.sum ./
-COPY auth-service/ ./
+COPY quiz-service/go.mod quiz-service/go.sum ./
+COPY quiz-service/ ./
 
 # Fix replace path to match container layout
 RUN go mod edit -replace=github.com/sushantpardhi/shared=./shared
 
 RUN go mod download
-RUN CGO_ENABLED=0 go build -o auth-service
+RUN CGO_ENABLED=0 go build -o quiz-service
 
 FROM alpine:latest
 WORKDIR /app
-COPY --from=builder /app/auth-service .
-COPY auth-service/.env.development ./.env.development
-COPY auth-service/.env.production ./.env.production
+COPY --from=builder /app/quiz-service .
+COPY quiz-service/.env.development ./.env.development
+COPY quiz-service/.env.production ./.env.production
 
 EXPOSE 8001
-CMD ["./auth-service"]
+CMD ["./quiz-service"]
