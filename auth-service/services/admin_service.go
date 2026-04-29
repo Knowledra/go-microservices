@@ -36,7 +36,7 @@ func CreateAdmin(c context.Context, auth models.User, body map[string]any) (crea
 			"last_name": lastName,
 		}
 
-		responseBody, callErr := callAPI.CallAPI(c, "POST", "http://dev-user-service:8002/api/v1/user/create/admin", payload)
+		responseBody, callErr := callAPI.CallAPI(c, "POST", "http://user-service:8002/api/v1/user/create/admin", payload)
 		if callErr != nil {
 			logger.C(c).Error("Failed to create admin profile", zap.Error(callErr))
 			return nil, callErr
@@ -74,7 +74,7 @@ func CreateSuperAdmin(c context.Context, auth models.User, body map[string]any) 
 			"last_name": lastName,
 		}
 
-		responseBody, callErr := callAPI.CallAPI(c, "POST", "http://dev-user-service:8002/api/v1/user/create/super-admin", payload)
+		responseBody, callErr := callAPI.CallAPI(c, "POST", "http://user-service:8002/api/v1/user/create/super-admin", payload)
 		if callErr != nil {
 			logger.C(c).Error("Failed to create super admin profile", zap.Error(callErr))
 			return nil, callErr
@@ -85,13 +85,13 @@ func CreateSuperAdmin(c context.Context, auth models.User, body map[string]any) 
 }
 
 func rollbackAdminProfile(c context.Context, id any) {
-	if _, err := callAPI.CallAPI(c, "DELETE", fmt.Sprintf("http://dev-user-service:8002/api/v1/user/internal/delete/profile/admin/%v", id), nil); err != nil {
+	if _, err := callAPI.CallAPI(c, "DELETE", fmt.Sprintf("http://user-service:8002/api/v1/user/internal/delete/profile/admin/%v", id), nil); err != nil {
 		logger.C(c).Error("Failed to rollback admin profile", zap.Error(err), zap.String("admin_id", fmt.Sprintf("%v", id)))
 	}
 }
 
 func rollbackSuperAdminProfile(c context.Context, id any) {
-	if _, err := callAPI.CallAPI(c, "DELETE", fmt.Sprintf("http://dev-user-service:8002/api/v1/user/internal/delete/profile/super-admin/%v", id), nil); err != nil {
+	if _, err := callAPI.CallAPI(c, "DELETE", fmt.Sprintf("http://user-service:8002/api/v1/user/internal/delete/profile/super-admin/%v", id), nil); err != nil {
 		logger.C(c).Error("Failed to rollback super admin profile", zap.Error(err), zap.String("super_admin_id", fmt.Sprintf("%v", id)))
 	}
 }

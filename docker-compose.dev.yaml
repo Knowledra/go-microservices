@@ -1,13 +1,17 @@
 services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx:/etc/nginx
+
   auth-service:
-    container_name: auth-service
     build:
       context: .
       dockerfile: auth-service/Dockerfile
     env_file:
       - ./auth-service/.env.development
-    ports:
-      - "8001:8001"
     volumes:
       - ./logs/dev:/logs
     environment:
@@ -15,14 +19,11 @@ services:
       - APP_ENV=development
 
   user-service:
-    container_name: user-service
     build:
       context: .
       dockerfile: user-service/Dockerfile
     env_file:
       - ./user-service/.env.development
-    ports:
-      - "8002:8002"
     volumes:
       - ./logs/dev:/logs
     environment:
@@ -30,14 +31,11 @@ services:
       - APP_ENV=development
 
   quiz-service:
-    container_name: quiz-service
     build:
       context: .
       dockerfile: quiz-service/Dockerfile
     env_file:
       - ./quiz-service/.env.development
-    ports:
-      - "8003:8003"
     volumes:
       - ./logs/dev:/logs
     environment:
@@ -45,14 +43,11 @@ services:
       - APP_ENV=development
 
   email-service:
-    container_name: email-service
     build:
       context: .
       dockerfile: email-service/Dockerfile
     env_file:
       - ./email-service/.env.development
-    ports:
-      - "8000:8000"
     volumes:
       - ./logs/dev:/logs
     environment:
