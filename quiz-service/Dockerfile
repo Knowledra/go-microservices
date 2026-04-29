@@ -18,6 +18,8 @@ RUN CGO_ENABLED=0 go build -o quiz-service
 FROM alpine:latest
 WORKDIR /app
 COPY --from=builder /app/quiz-service .
+COPY quiz-service/.env.development ./.env.development
+COPY quiz-service/.env.production ./.env.production
 
 EXPOSE 8001
 CMD ["./quiz-service"]

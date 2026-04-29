@@ -18,6 +18,8 @@ RUN CGO_ENABLED=0 go build -o auth-service
 FROM alpine:latest
 WORKDIR /app
 COPY --from=builder /app/auth-service .
+COPY auth-service/.env.development ./.env.development
+COPY auth-service/.env.production ./.env.production
 
 EXPOSE 8001
 CMD ["./auth-service"]
