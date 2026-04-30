@@ -27,16 +27,25 @@ func Send(req models.EmailRequest) error {
 		return err
 	}
 
+	if host == "" || port == "" || user == "" || pass == "" {
+		err := fmt.Errorf("missing SMTP configuration")
+		logger.Error("SMTP configuration is incomplete",
+			zap.Bool("has_host", host != ""),
+			zap.Bool("has_port", port != ""),
+			zap.Bool("has_user", user != ""),
+			zap.Bool("has_pass", pass != ""),
+		)
+		return err
+	}
+
 	addr := host + ":" + port
 	logger.Info("Sending email over SMTP TLS", zap.String("recipient", req.To), zap.String("smtp_addr", addr))
 
-	// TLS config
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: false,
 		ServerName:         host,
 	}
 
-	// Connect using TLS
 	conn, err := tls.Dial("tcp", addr, tlsConfig)
 	if err != nil {
 		logger.Error("SMTP TLS dial failed", zap.String("smtp_addr", addr), zap.Error(err))
@@ -53,6 +62,11 @@ func Send(req models.EmailRequest) error {
 		logger.Error("Failed to create SMTP client", zap.Error(err))
 		return fmt.Errorf("create smtp client failed: %w", err)
 	}
+	defer func() {
+		if quitErr := client.Quit(); quitErr != nil {
+			logger.Warn("SMTP quit returned error", zap.Error(quitErr))
+		}
+	}()
 
 	// Auth
 	auth := smtp.PlainAuth("", user, pass, host)
@@ -95,11 +109,6 @@ func Send(req models.EmailRequest) error {
 	if err != nil {
 		logger.Error("Failed to finalize email message", zap.String("recipient", req.To), zap.Error(err))
 		return fmt.Errorf("smtp close message writer failed: %w", err)
-	}
-
-	if err = client.Quit(); err != nil {
-		logger.Warn("SMTP quit returned error", zap.Error(err))
-		return fmt.Errorf("smtp quit failed: %w", err)
 	}
 
 	logger.Info("Email sent successfully over SMTP TLS", zap.String("recipient", req.To))
