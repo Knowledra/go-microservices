@@ -2,16 +2,20 @@ package services
 
 import (
 	"auth/models"
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
+	"text/template"
 
 	"github.com/google/uuid"
 	"github.com/sushantpardhi/shared/callAPI"
 	"github.com/sushantpardhi/shared/db"
+	"github.com/sushantpardhi/shared/email"
 	"github.com/sushantpardhi/shared/logger"
+	sharedModels "github.com/sushantpardhi/shared/models"
 	"go.uber.org/zap"
 )
 
@@ -29,7 +33,7 @@ func CreateAdmin(c context.Context, auth models.User, body map[string]any) (crea
 		return models.User{}, nil, errors.New("name and last_name are required for admin")
 	}
 
-	return createUserWithProfileAtomic(c, auth, func(userID uuid.UUID) (json.RawMessage, error) {
+	createdAuth, responseBody, err = createUserWithProfileAtomic(c, auth, func(userID uuid.UUID) (json.RawMessage, error) {
 		payload := map[string]any{
 			"id":        userID,
 			"name":      name,
@@ -44,6 +48,52 @@ func CreateAdmin(c context.Context, auth models.User, body map[string]any) (crea
 
 		return responseBody, nil
 	}, rollbackAdminProfile)
+
+	if err != nil {
+		return createdAuth, responseBody, err
+	}
+
+	// Send welcome email to admin with temporary password
+	go func() {
+		tmpl, templateErr := template.ParseFiles("templates/admin_welcome.html")
+		if templateErr != nil {
+			logger.C(c).Error("Failed to parse admin welcome template", zap.Error(templateErr))
+			return
+		}
+
+		var htmlBody bytes.Buffer
+		data := map[string]string{
+			"FirstName":         name,
+			"LastName":          lastName,
+			"Email":             auth.Email,
+			"TemporaryPassword": getString(body, "temporary_password"),
+		}
+		if err := tmpl.Execute(&htmlBody, data); err != nil {
+			logger.C(c).Error("Failed to render admin welcome template", zap.Error(err))
+			return
+		}
+
+		emailReq := sharedModels.EmailRequest{
+			To:      auth.Email,
+			Subject: "Welcome to the Platform - Admin Account Created",
+			Body:    htmlBody.String(),
+			IsHTML:  true,
+		}
+
+		if err := email.SendEmail(c, emailReq); err != nil {
+			logger.C(c).Error("Failed to send admin welcome email",
+				zap.String("email", auth.Email),
+				zap.Error(err),
+			)
+			return
+		}
+
+		logger.C(c).Info("Welcome email sent to admin",
+			zap.String("email", auth.Email),
+		)
+	}()
+
+	return createdAuth, responseBody, nil
 }
 
 func CreateSuperAdmin(c context.Context, auth models.User, body map[string]any) (createdAuth models.User, responseBody json.RawMessage, err error) {
@@ -67,7 +117,7 @@ func CreateSuperAdmin(c context.Context, auth models.User, body map[string]any) 
 		return models.User{}, nil, errors.New("super admin already exists")
 	}
 
-	return createUserWithProfileAtomic(c, auth, func(userID uuid.UUID) (json.RawMessage, error) {
+	createdAuth, responseBody, err = createUserWithProfileAtomic(c, auth, func(userID uuid.UUID) (json.RawMessage, error) {
 		payload := map[string]any{
 			"id":        userID,
 			"name":      name,
@@ -82,6 +132,52 @@ func CreateSuperAdmin(c context.Context, auth models.User, body map[string]any) 
 
 		return responseBody, nil
 	}, rollbackSuperAdminProfile)
+
+	if err != nil {
+		return createdAuth, responseBody, err
+	}
+
+	// Send welcome email to super admin with temporary password
+	go func() {
+		tmpl, templateErr := template.ParseFiles("templates/super_admin_welcome.html")
+		if templateErr != nil {
+			logger.C(c).Error("Failed to parse super admin welcome template", zap.Error(templateErr))
+			return
+		}
+
+		var htmlBody bytes.Buffer
+		data := map[string]string{
+			"FirstName":         name,
+			"LastName":          lastName,
+			"Email":             auth.Email,
+			"TemporaryPassword": getString(body, "temporary_password"),
+		}
+		if err := tmpl.Execute(&htmlBody, data); err != nil {
+			logger.C(c).Error("Failed to render super admin welcome template", zap.Error(err))
+			return
+		}
+
+		emailReq := sharedModels.EmailRequest{
+			To:      auth.Email,
+			Subject: "Welcome to the Platform - Super Admin Account Created",
+			Body:    htmlBody.String(),
+			IsHTML:  true,
+		}
+
+		if err := email.SendEmail(c, emailReq); err != nil {
+			logger.C(c).Error("Failed to send super admin welcome email",
+				zap.String("email", auth.Email),
+				zap.Error(err),
+			)
+			return
+		}
+
+		logger.C(c).Info("Welcome email sent to super admin",
+			zap.String("email", auth.Email),
+		)
+	}()
+
+	return createdAuth, responseBody, nil
 }
 
 func rollbackAdminProfile(c context.Context, id any) {

@@ -135,6 +135,9 @@ func CreateSuperAdmin(c *gin.Context) {
 		Role:     role,
 	}
 
+	// Pass temporary password to service for email
+	body["temporary_password"] = password
+
 	createdAuth, _, err := services.CreateUserByRole(c, auth, body)
 	if err != nil {
 		logger.C(c).Error("Failed to create super admin", zap.Error(err))
