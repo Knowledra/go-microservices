@@ -94,9 +94,16 @@ func Send(req models.EmailRequest) error {
 		return fmt.Errorf("smtp data command failed: %w", err)
 	}
 
+	// Set Content-Type based on whether body is HTML
+	contentType := "text/plain; charset=utf-8"
+	if req.IsHTML {
+		contentType = "text/html; charset=utf-8"
+		logger.Info("Sending email as HTML", zap.String("recipient", req.To))
+	}
+
 	msg := fmt.Sprintf(
-		"To: %s\r\nSubject: %s\r\n\r\n%s",
-		req.To, req.Subject, req.Body,
+		"To: %s\r\nSubject: %s\r\nContent-Type: %s\r\n\r\n%s",
+		req.To, req.Subject, contentType, req.Body,
 	)
 
 	_, err = w.Write([]byte(msg))
