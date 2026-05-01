@@ -39,6 +39,7 @@ func CreateUser(c *gin.Context) {
 	// Extract auth safely
 	email, _ := body["email"].(string)
 	password := generateRandomPassword(10)
+	body["temporary_password"] = password
 	role, _ := body["role"].(string)
 
 	role = strings.TrimSpace(strings.ToLower(role))
