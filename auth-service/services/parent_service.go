@@ -20,12 +20,16 @@ func CreateParent(c context.Context, auth models.User, body map[string]any) (cre
 		return models.User{}, nil, errors.New("name and last_name are required for parent")
 	}
 
-	return createUserWithProfileAtomic(c, auth, func(userID uuid.UUID) (json.RawMessage, error) {
+	return createParentAccount(c, auth, name, lastName, getString(body, "phone_number"), getString(body, "temporary_password"))
+}
+
+func createParentAccount(c context.Context, auth models.User, name string, lastName string, phoneNumber string, temporaryPassword string) (createdAuth models.User, responseBody json.RawMessage, err error) {
+	createdAuth, responseBody, err = createUserWithProfileAtomic(c, auth, func(userID uuid.UUID) (json.RawMessage, error) {
 		payload := map[string]any{
 			"id":           userID,
 			"name":         name,
 			"last_name":    lastName,
-			"phone_number": getString(body, "phone_number"),
+			"phone_number": phoneNumber,
 		}
 
 		responseBody, callErr := callAPI.CallAPI(c, "POST", "http://user-service:8002/api/v1/user/create/parent", payload)
@@ -36,6 +40,18 @@ func CreateParent(c context.Context, auth models.User, body map[string]any) (cre
 
 		return responseBody, nil
 	}, rollbackParentProfileAccount)
+	if err != nil {
+		return createdAuth, responseBody, err
+	}
+
+	sendWelcomeEmailAsync(c, "templates/parent_welcome.html", "Welcome to the Platform - Parent Account Created", map[string]string{
+		"FirstName":         name,
+		"LastName":          lastName,
+		"Email":             auth.Email,
+		"TemporaryPassword": temporaryPassword,
+	})
+
+	return createdAuth, responseBody, nil
 }
 
 func rollbackParentProfileAccount(c context.Context, id any) {

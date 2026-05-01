@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/mail"
 	"strings"
 	"time"
 
@@ -133,6 +134,20 @@ func getUUID(body map[string]any, key string) (uuid.UUID, error) {
 		return uuid.Nil, errors.New("invalid type for " + key)
 	}
 	return uuid.Nil, nil
+}
+
+func ValidateEmailAddress(email string) error {
+	trimmedEmail := strings.TrimSpace(email)
+	if trimmedEmail == "" {
+		return errors.New("email is required")
+	}
+
+	parsedAddress, err := mail.ParseAddress(trimmedEmail)
+	if err != nil || parsedAddress.Address != trimmedEmail {
+		return errors.New("invalid email address")
+	}
+
+	return nil
 }
 
 func DeleteUserAccount(c context.Context, userId string) error {
