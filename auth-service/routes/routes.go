@@ -13,7 +13,7 @@ func Init(app *gin.Engine) {
 		})
 	})
 
-	api := app.Group("/api/v1/auth")
+	api := app.Group("/api/v1")
 	healthRoutes(api)
 	authRoutes(api)
 }

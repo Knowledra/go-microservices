@@ -2,7 +2,9 @@ package services
 
 import (
 	"crypto/rand"
+	"errors"
 	"math/big"
+	"strings"
 )
 
 const temporaryPasswordLength = 12
@@ -61,4 +63,37 @@ func shuffleBytes(data []byte) error {
 	}
 
 	return nil
+}
+
+func ValidatePasswordStrength(password string) error {
+	if len(password) < 8 {
+		return errors.New("password must be at least 8 characters long")
+	}
+	if strings.ContainsAny(password, " \t\n\r") {
+		return errors.New("password must not contain spaces")
+	}
+	if !containsCharFromSet(password, lowercaseChars) {
+		return errors.New("password must contain at least one lowercase letter")
+	}
+	if !containsCharFromSet(password, uppercaseChars) {
+		return errors.New("password must contain at least one uppercase letter")
+	}
+	if !containsCharFromSet(password, digitChars) {
+		return errors.New("password must contain at least one number")
+	}
+	if !containsCharFromSet(password, specialChars) {
+		return errors.New("password must contain at least one special character")
+	}
+
+	return nil
+}
+
+func containsCharFromSet(value string, charset string) bool {
+	for _, char := range value {
+		if strings.ContainsRune(charset, char) {
+			return true
+		}
+	}
+
+	return false
 }

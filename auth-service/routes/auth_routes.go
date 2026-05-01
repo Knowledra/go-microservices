@@ -14,4 +14,5 @@ func authRoutes(app *gin.RouterGroup) {
 	app.POST("/create/super-admin", controllers.CreateSuperAdmin)
 	app.POST("/create/user", middleware.AuthMiddleware(), controllers.CreateUser)
 	app.DELETE("/delete/user", middleware.AuthMiddleware(), controllers.DeleteSelf)
+	app.POST("/reset-password", middleware.AuthMiddleware(), controllers.ResetPassword)
 }
