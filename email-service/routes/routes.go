@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"email/controller"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -9,11 +10,10 @@ import (
 func Init(app *gin.Engine) {
 	app.GET("/", func(C *gin.Context) {
 		C.JSON(http.StatusOK, gin.H{
-			"message": "Welcome to Auth Service API",
+			"message": "Welcome to Email Service API",
 		})
 	})
 
-	api := app.Group("/api/v1")
-	healthRoutes(api)
-	authRoutes(api)
+	app.POST("/send-email", controller.SendEmail)
+
 }

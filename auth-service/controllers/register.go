@@ -3,8 +3,6 @@ package controllers
 import (
 	"auth/models"
 	"auth/services"
-	"crypto/rand"
-	"encoding/hex"
 	"net/http"
 	"strings"
 
@@ -15,15 +13,6 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
-
-func generateRandomPassword(length int) string {
-	buf := make([]byte, (length+1)/2)
-	if _, err := rand.Read(buf); err != nil {
-		return "TempPass123!"
-	}
-	pw := hex.EncodeToString(buf)
-	return pw[:length]
-}
 
 func CreateUser(c *gin.Context) {
 	logger.C(c).Info("CreateUser endpoint hit")
@@ -38,7 +27,8 @@ func CreateUser(c *gin.Context) {
 
 	// Extract auth safely
 	email, _ := body["email"].(string)
-	password := generateRandomPassword(10)
+	password := services.GenerateTemporaryPassword()
+	body["temporary_password"] = password
 	role, _ := body["role"].(string)
 
 	role = strings.TrimSpace(strings.ToLower(role))
@@ -47,6 +37,11 @@ func CreateUser(c *gin.Context) {
 	if email == "" || password == "" || role == "" {
 		logger.C(c).Error("Missing required fields")
 		response.Error(c, 400, "missing required fields", nil)
+		return
+	}
+	if err := services.ValidateEmailAddress(email); err != nil {
+		logger.C(c).Error("Invalid email address", zap.String("email", email), zap.Error(err))
+		response.Error(c, 400, "invalid email address", err)
 		return
 	}
 
@@ -102,7 +97,7 @@ func CreateSuperAdmin(c *gin.Context) {
 
 	// Extract other fields
 	email, _ := body["email"].(string)
-	password := generateRandomPassword(10)
+	password := services.GenerateTemporaryPassword()
 	role := "super_admin"
 
 	email = strings.TrimSpace(strings.ToLower(email))
@@ -110,6 +105,11 @@ func CreateSuperAdmin(c *gin.Context) {
 	if email == "" {
 		logger.C(c).Error("Email is required")
 		response.Error(c, 400, "email is required", nil)
+		return
+	}
+	if err := services.ValidateEmailAddress(email); err != nil {
+		logger.C(c).Error("Invalid email address", zap.String("email", email), zap.Error(err))
+		response.Error(c, 400, "invalid email address", err)
 		return
 	}
 
@@ -134,6 +134,9 @@ func CreateSuperAdmin(c *gin.Context) {
 		Password: string(hashed),
 		Role:     role,
 	}
+
+	// Pass temporary password to service for email
+	body["temporary_password"] = password
 
 	createdAuth, _, err := services.CreateUserByRole(c, auth, body)
 	if err != nil {

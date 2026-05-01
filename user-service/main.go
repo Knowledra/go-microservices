@@ -28,10 +28,7 @@ func main() {
 
 	// Check Environment Variables
 	logger.Info("Validating environment variables")
-	if err := env.CheckEnv(
-		"PORT",
-		"DATABASE_URL",
-	); err != nil {
+	if err := env.CheckEnv("APP_ENV", "PORT", "DATABASE_URL", "ACCESS_TOKEN_SECRET", "SERVICE_NAME"); err != nil {
 		logger.Fatal("Environment validation failed", zap.Error(err))
 	}
 

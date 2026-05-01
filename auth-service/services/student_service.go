@@ -61,6 +61,13 @@ func CreateStudent(c context.Context, auth models.User, body map[string]any) (cr
 		return models.User{}, nil, err
 	}
 
+	sendWelcomeEmailAsync(c, "templates/student_welcome.html", "Welcome to the Platform - Student Account Created", map[string]string{
+		"FirstName":         name,
+		"LastName":          lastName,
+		"Email":             auth.Email,
+		"TemporaryPassword": getString(body, "temporary_password"),
+	})
+
 	return createdAuth, responseBody, nil
 }
 
@@ -72,8 +79,11 @@ func createParentForStudent(c context.Context, body map[string]any) (uuid.UUID, 
 	if parentName == "" || parentLastName == "" || parentEmail == "" {
 		return uuid.Nil, errors.New("parent_name, parent_last_name, and parent_email are required when creating a student")
 	}
+	if err := ValidateEmailAddress(parentEmail); err != nil {
+		return uuid.Nil, err
+	}
 
-	parentPassword := uuid.New().String()
+	parentPassword := GenerateTemporaryPassword()
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(parentPassword), bcrypt.DefaultCost)
 	if err != nil {
@@ -87,16 +97,7 @@ func createParentForStudent(c context.Context, body map[string]any) (uuid.UUID, 
 		IsActive: true,
 	}
 
-	createdParentAuth, _, err := createUserWithProfileAtomic(c, parentAuth, func(userID uuid.UUID) (json.RawMessage, error) {
-		payload := map[string]any{
-			"id":           userID,
-			"name":         parentName,
-			"last_name":    parentLastName,
-			"phone_number": getString(body, "parent_phone_primary"),
-		}
-
-		return callAPI.CallAPI(c, "POST", "http://user-service:8002/api/v1/user/create/parent", payload)
-	}, rollbackParentProfileAccount)
+	createdParentAuth, _, err := createParentAccount(c, parentAuth, parentName, parentLastName, getString(body, "parent_phone_primary"), parentPassword)
 	if err != nil {
 		return uuid.Nil, err
 	}

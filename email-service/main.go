@@ -1,6 +1,7 @@
 package main
 
 import (
+	"email/routes"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -24,7 +25,7 @@ func main() {
 
 	// Check Environment Variables
 	logger.Info("Validating environment variables")
-	if err := env.CheckEnv("PORT"); err != nil {
+	if err := env.CheckEnv("APP_ENV", "PORT", "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS"); err != nil {
 		logger.Fatal("Environment validation failed", zap.Error(err))
 	}
 
@@ -41,11 +42,8 @@ func main() {
 	app := gin.Default()
 	app.Use(middleware.RequestID())
 
-	// if err := models.Migrate(db.DB); err != nil {
-	// 	log.Fatal("Migration failed:", err)
-	// }
-
-	// routes.Init(app)
+	// Initialize Routes
+	routes.Init(app)
 
 	port := os.Getenv("PORT")
 	srv := server.New(app, port)

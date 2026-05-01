@@ -24,7 +24,7 @@ func CreateTeacher(c context.Context, auth models.User, body map[string]any) (cr
 		return models.User{}, nil, errors.New("name and last_name are required for teacher")
 	}
 
-	return createUserWithProfileAtomic(c, auth, func(userID uuid.UUID) (json.RawMessage, error) {
+	createdAuth, responseBody, err = createUserWithProfileAtomic(c, auth, func(userID uuid.UUID) (json.RawMessage, error) {
 		payload := map[string]any{
 			"id":             userID,
 			"name":           name,
@@ -40,6 +40,18 @@ func CreateTeacher(c context.Context, auth models.User, body map[string]any) (cr
 
 		return responseBody, nil
 	}, rollbackTeacherProfile)
+	if err != nil {
+		return createdAuth, responseBody, err
+	}
+
+	sendWelcomeEmailAsync(c, "templates/teacher_welcome.html", "Welcome to the Platform - Teacher Account Created", map[string]string{
+		"FirstName":         name,
+		"LastName":          lastName,
+		"Email":             auth.Email,
+		"TemporaryPassword": getString(body, "temporary_password"),
+	})
+
+	return createdAuth, responseBody, nil
 }
 
 func rollbackTeacherProfile(c context.Context, id any) {

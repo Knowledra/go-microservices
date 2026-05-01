@@ -29,7 +29,7 @@ func CreateAdmin(c context.Context, auth models.User, body map[string]any) (crea
 		return models.User{}, nil, errors.New("name and last_name are required for admin")
 	}
 
-	return createUserWithProfileAtomic(c, auth, func(userID uuid.UUID) (json.RawMessage, error) {
+	createdAuth, responseBody, err = createUserWithProfileAtomic(c, auth, func(userID uuid.UUID) (json.RawMessage, error) {
 		payload := map[string]any{
 			"id":        userID,
 			"name":      name,
@@ -44,6 +44,19 @@ func CreateAdmin(c context.Context, auth models.User, body map[string]any) (crea
 
 		return responseBody, nil
 	}, rollbackAdminProfile)
+
+	if err != nil {
+		return createdAuth, responseBody, err
+	}
+
+	sendWelcomeEmailAsync(c, "templates/admin_welcome.html", "Welcome to the Platform - Admin Account Created", map[string]string{
+		"FirstName":         name,
+		"LastName":          lastName,
+		"Email":             auth.Email,
+		"TemporaryPassword": getString(body, "temporary_password"),
+	})
+
+	return createdAuth, responseBody, nil
 }
 
 func CreateSuperAdmin(c context.Context, auth models.User, body map[string]any) (createdAuth models.User, responseBody json.RawMessage, err error) {
@@ -67,7 +80,7 @@ func CreateSuperAdmin(c context.Context, auth models.User, body map[string]any) 
 		return models.User{}, nil, errors.New("super admin already exists")
 	}
 
-	return createUserWithProfileAtomic(c, auth, func(userID uuid.UUID) (json.RawMessage, error) {
+	createdAuth, responseBody, err = createUserWithProfileAtomic(c, auth, func(userID uuid.UUID) (json.RawMessage, error) {
 		payload := map[string]any{
 			"id":        userID,
 			"name":      name,
@@ -82,6 +95,19 @@ func CreateSuperAdmin(c context.Context, auth models.User, body map[string]any) 
 
 		return responseBody, nil
 	}, rollbackSuperAdminProfile)
+
+	if err != nil {
+		return createdAuth, responseBody, err
+	}
+
+	sendWelcomeEmailAsync(c, "templates/super_admin_welcome.html", "Welcome to the Platform - Super Admin Account Created", map[string]string{
+		"FirstName":         name,
+		"LastName":          lastName,
+		"Email":             auth.Email,
+		"TemporaryPassword": getString(body, "temporary_password"),
+	})
+
+	return createdAuth, responseBody, nil
 }
 
 func rollbackAdminProfile(c context.Context, id any) {
