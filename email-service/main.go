@@ -25,7 +25,7 @@ func main() {
 
 	// Check Environment Variables
 	logger.Info("Validating environment variables")
-	if err := env.CheckEnv("PORT", "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS"); err != nil {
+	if err := env.CheckEnv("APP_ENV", "PORT", "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS"); err != nil {
 		logger.Fatal("Environment validation failed", zap.Error(err))
 	}
 
