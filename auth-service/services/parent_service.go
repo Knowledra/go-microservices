@@ -32,7 +32,7 @@ func createParentAccount(c context.Context, auth models.User, name string, lastN
 			"phone_number": phoneNumber,
 		}
 
-		responseBody, callErr := callAPI.CallAPI(c, "POST", "http://user-service:8002/api/v1/user/create/parent", payload)
+		responseBody, callErr := callAPI.CallAPI(c, "POST", "http://user-service:8002/api/v1/create/parent", payload)
 		if callErr != nil {
 			logger.C(c).Error("Failed to create parent profile", zap.Error(callErr))
 			return nil, callErr
@@ -55,7 +55,7 @@ func createParentAccount(c context.Context, auth models.User, name string, lastN
 }
 
 func rollbackParentProfileAccount(c context.Context, id any) {
-	if _, err := callAPI.CallAPI(c, "DELETE", fmt.Sprintf("http://user-service:8002/api/v1/user/internal/delete/profile/parent/%v", id), nil); err != nil {
+	if _, err := callAPI.CallAPI(c, "DELETE", fmt.Sprintf("http://user-service:8002/api/v1/internal/delete/profile/parent/%v", id), nil); err != nil {
 		logger.C(c).Error("Failed to rollback parent profile", zap.Error(err), zap.String("parent_id", fmt.Sprintf("%v", id)))
 	}
 }
