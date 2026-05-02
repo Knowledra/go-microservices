@@ -16,4 +16,7 @@ func Init(app *gin.Engine) {
 
 	app.POST("/send-email", controller.SendEmail)
 
+	api := app.Group("/api/v1")
+	healthRoutes(api)
+
 }

@@ -23,14 +23,17 @@ func GetHealth(c *gin.Context) {
 	C, cancel := context.WithTimeout(c.Request.Context(), 2*time.Second)
 	defer cancel()
 
-	dbStatus := "up"
-	sqlDB, err := db.DB.DB()
-	if err != nil {
-		dbStatus = "down"
-		logger.C(c).Error("DB connection error: " + err.Error())
-	} else if err := sqlDB.PingContext(C); err != nil {
-		dbStatus = "down"
-		logger.C(c).Error("DB ping failed: " + err.Error())
+	dbStatus := "skipped"
+	if service != "email-service" {
+		dbStatus = "up"
+		sqlDB, err := db.DB.DB()
+		if err != nil {
+			dbStatus = "down"
+			logger.C(c).Error("DB connection error: " + err.Error())
+		} else if err := sqlDB.PingContext(C); err != nil {
+			dbStatus = "down"
+			logger.C(c).Error("DB ping failed: " + err.Error())
+		}
 	}
 
 	var m runtime.MemStats
