@@ -14,8 +14,8 @@ import (
 )
 
 func main() {
-	logger.Init("quiz-service")
-	logger.Info("Quiz service startup initiated")
+	logger.Init("department-service")
+	logger.Info("Department service startup initiated")
 
 	// Load Environment Variables
 	logger.Info("Loading environment variables")
@@ -25,7 +25,7 @@ func main() {
 
 	// Check Environment Variables
 	logger.Info("Validating environment variables")
-	if err := env.CheckEnv("APP_ENV", "PORT", "DATABASE_URL"); err != nil {
+	if err := env.CheckEnv("APP_ENV", "PORT", "DATABASE_URL", "SERVICE_NAME"); err != nil {
 		logger.Fatal("Environment validation failed", zap.Error(err))
 	}
 

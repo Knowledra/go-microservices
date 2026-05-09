@@ -30,12 +30,12 @@ services:
       - GIN_MODE=debug
       - APP_ENV=development
 
-  quiz-service:
+  department-service:
     build:
       context: .
-      dockerfile: quiz-service/Dockerfile
+      dockerfile: department-service/Dockerfile
     env_file:
-      - ./quiz-service/.env.development
+      - ./department-service/.env.development
     volumes:
       - ./logs/dev:/logs
     environment:

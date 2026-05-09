@@ -1,4 +1,4 @@
-module quiz
+module department
 
 go 1.25.0
 
