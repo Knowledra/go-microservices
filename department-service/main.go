@@ -1,6 +1,7 @@
 package main
 
 import (
+	"department/routes"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -48,7 +49,7 @@ func main() {
 	// 	log.Fatal("Migration failed:", err)
 	// }
 
-	// routes.Init(app)
+	routes.Init(app)
 
 	port := os.Getenv("PORT")
 	srv := server.New(app, port)
