@@ -1,7 +1,9 @@
 package main
 
 import (
+	"department/models"
 	"department/routes"
+	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -26,7 +28,7 @@ func main() {
 
 	// Check Environment Variables
 	logger.Info("Validating environment variables")
-	if err := env.CheckEnv("APP_ENV", "PORT", "DATABASE_URL", "SERVICE_NAME"); err != nil {
+	if err := env.CheckEnv("APP_ENV", "PORT", "DATABASE_URL", "SERVICE_NAME", "ACCESS_TOKEN_SECRET"); err != nil {
 		logger.Fatal("Environment validation failed", zap.Error(err))
 	}
 
@@ -45,9 +47,9 @@ func main() {
 
 	db.ConnectDB()
 
-	// if err := models.Migrate(db.DB); err != nil {
-	// 	log.Fatal("Migration failed:", err)
-	// }
+	if err := models.Migrate(db.DB); err != nil {
+		log.Fatal("Migration failed:", err)
+	}
 
 	routes.Init(app)
 
