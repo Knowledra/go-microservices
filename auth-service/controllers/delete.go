@@ -10,9 +10,15 @@ import (
 	"go.uber.org/zap"
 )
 
-func DeleteSelf(c *gin.Context) {
-	logger.C(c).Info("DeleteSelf endpoint hit")
-	userId := c.MustGet("user_id").(string)
+func DeleteUser(c *gin.Context) {
+	logger.C(c).Info("DeleteUser endpoint hit")
+	userId := c.Param("user_id")
+
+	if userId == "" {
+		logger.C(c).Error("Missing user_id param")
+		response.Error(c, http.StatusBadRequest, "user_id is required", nil)
+		return
+	}
 
 	err := services.DeleteUserAccount(c, userId)
 	if err != nil {
@@ -21,10 +27,6 @@ func DeleteSelf(c *gin.Context) {
 		return
 	}
 
-	logger.Info("Removing cookies")
-	c.SetCookie("access_token", "", -1, "/", "", true, true)
-	logger.Info("Cookies removed successfully")
-
 	logger.C(c).Info("User deleted successfully", zap.String("user_id", userId))
-	response.Success(c, http.StatusOK, "User deleted", gin.H{"user": userId})
+	response.Success(c, http.StatusOK, "User deleted", gin.H{"user_id": userId})
 }

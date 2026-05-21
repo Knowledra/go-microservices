@@ -159,7 +159,7 @@ func DeleteUserAccount(c context.Context, userId string) error {
 	}
 
 	// Mark user as deleted in Auth table
-	if err := db.DB.Model(&models.User{}).Where("id = ?", userId).Update("is_deleted", true).Update("deleted_at", time.Now()).Error; err != nil {
+	if err := db.DB.Model(&models.User{}).Where("id = ?", userId).Update("is_active", false).Update("is_deleted", true).Update("deleted_at", time.Now()).Error; err != nil {
 		logger.C(c).Error("Failed to mark user as deleted in Auth table", zap.Error(err))
 		return errors.New("failed to mark user as deleted")
 	}
