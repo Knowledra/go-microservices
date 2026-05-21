@@ -22,6 +22,4 @@ func adminroutes(app *gin.RouterGroup) {
 	// These are only reachable within the Docker network.
 	internal := app.Group("/internal")
 	internal.DELETE("/delete/profile/:role/:user_id", controllers.DeleteUserProfile)
-
-	app.PUT("/update/user/:role/:user_id", middleware.AuthMiddleware(), middleware.AdminOnly(), controllers.UpdateUser)
 }
