@@ -9,4 +9,5 @@ import (
 
 func departmentRoutes(app *gin.RouterGroup) {
 	app.POST("/create", middleware.AuthMiddleware(), middleware.AdminOnly(), controllers.CreateDepartment)
+	app.PUT("/update/:department_id", middleware.AuthMiddleware(), middleware.AdminOnly(), controllers.UpdateDepartment)
 }
